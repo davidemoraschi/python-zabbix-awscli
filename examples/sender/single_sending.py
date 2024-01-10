@@ -7,7 +7,7 @@ from zabbix_utils import Sender
 
 # Zabbix server/proxy details for Sender
 ZABBIX_SERVER = {
-    "server": "127.0.0.1",  # Zabbix server/proxy IP address or hostname
+    "server": "zabbix-server",  # Zabbix server/proxy IP address or hostname
     "port": 10051           # Zabbix server/proxy port for Sender
 }
 
@@ -16,7 +16,7 @@ sender = Sender(**ZABBIX_SERVER)
 
 # Send a value to a Zabbix server/proxy with specified parameters
 # Parameters: (host, key, value, clock, ns)
-responses = sender.send_value('host', 'item.key', 'value', 1695713666, 30)
+responses = sender.send_value('zabbix-server', 'github-to-s3', 'PYTHON')
 
 for node, resp in responses.items():
     # Check if the value sending was successful
