@@ -30,7 +30,7 @@ flow_execution_result = flow_execution(
 # Zabbix server/proxy details for Sender
 ZABBIX_SERVER = {
     "server": "zabbix-server",  # Zabbix server/proxy IP address or hostname
-    "port": 10051           # Zabbix server/proxy port for Sender
+    "port": 10051               # Zabbix server/proxy port for Sender
 }
 
 # Create an instance of the Sender class with the specified server details
