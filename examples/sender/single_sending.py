@@ -1,3 +1,5 @@
+#!/usr/local/bin/python
+
 # Copyright (C) 2001-2023 Zabbix SIA
 #
 # Zabbix SIA licenses this file to you under the MIT License.
