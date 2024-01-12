@@ -28,17 +28,13 @@ def main():
         executiontime=response['JobRuns'][0]['ExecutionTime']
     )
 
-    # print(gluejobexecution.tojson())
     zabbixsender = zabbix_sender('zabbix-server')
     ret = zabbixsender.send_value('zabbix-server', jobname, gluejobexecution.tojson())
 
     for node, resp in ret.items():
-        # Check if the value sending was successful
         if resp.failed == 0:
-            # Print a success message along with the response time
             print(f"Value sent successfully to {node} in {resp.time}")
         else:
-            # Print a failure message
             print(f"Failed to send value to {node}")
 
 

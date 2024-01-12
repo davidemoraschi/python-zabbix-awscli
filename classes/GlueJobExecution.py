@@ -30,4 +30,3 @@ class GlueJobExecution:
     def tojson(self):
         '''returns json representation of content'''
         return json.dumps(self.__dict__, default=self.serialize_datetime)
-
