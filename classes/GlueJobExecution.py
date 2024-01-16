@@ -13,8 +13,9 @@ import datetime
 class GlueJobExecution:
     '''class to hold results from AWS API calls'''
 
-    def __init__(self, jobrunid: str, jobrunstate: str,  # pylint: disable=too-many-arguments
+    def __init__(self, jobname: str, jobrunid: str, jobrunstate: str,  # pylint: disable=too-many-arguments
                  startedon: datetime.datetime, completedon: datetime.datetime, executiontime: int):
+        self.jobname = jobname
         self.jobrunid = jobrunid
         self.jobrunstate = jobrunstate
         self.startedon = startedon
