@@ -42,7 +42,7 @@ def main():
         else:
             print(f"Empry result: {job}")
 
-    print(f'Glue Job                                                - Last Status          Last Execution Date                Duration in Sec.')
+    print('Glue Job                                                - Last Status          Last Execution Date                Duration in Sec.')
     print(''.center(105, '-'))
 
     gluejobexecution.sort(reverse=True, key=sort_jobexecution)
