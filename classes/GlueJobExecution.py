@@ -14,13 +14,15 @@ class GlueJobExecution:
     '''class to hold results from AWS API calls'''
 
     def __init__(self, jobname: str, jobrunid: str, jobrunstate: str,  # pylint: disable=too-many-arguments
-                 startedon: datetime.datetime, completedon: datetime.datetime, executiontime: int):
+                 startedon: datetime.datetime, completedon: datetime.datetime, executiontime: int,
+                 errormessage: str):
         self.jobname = jobname
         self.jobrunid = jobrunid
         self.jobrunstate = jobrunstate
         self.startedon = startedon
         self.completedon = completedon
         self.executiontime = executiontime
+        self.errormessage = errormessage
 
     def serialize_datetime(self, obj):
         '''Define a custom function to serialize datetime objects'''

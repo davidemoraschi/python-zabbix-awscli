@@ -31,25 +31,33 @@ def main():
     for job in joblist:
         response = client.get_job_runs(JobName=job, MaxResults=1)
         if response['JobRuns']:
+            if 'ErrorMessage' in response['JobRuns'][0].keys():
+                errormessage = response['JobRuns'][0]['ErrorMessage']
+            else:
+                errormessage = ''
+
             gluejobexecution.append(GlueJobExecution(
                 jobname=response['JobRuns'][0]['JobName'],
                 jobrunid=response['JobRuns'][0]['Id'],
                 jobrunstate=response['JobRuns'][0]['JobRunState'],
                 startedon=response['JobRuns'][0]['StartedOn'],
                 completedon=response['JobRuns'][0]['CompletedOn'],
-                executiontime=response['JobRuns'][0]['ExecutionTime'])
+                executiontime=response['JobRuns'][0]['ExecutionTime'],
+                errormessage=errormessage
+            )
             )
         else:
             print(f"Empry result: {job}")
 
-    print('Glue Job                                                - Last Status          Last Execution Date                Duration in Sec.')
-    print(''.center(105, '-'))
+    print('Glue Job                                                - Last Status          Last Execution Date                 Duration in Sec.  Error')
+    print(''.center(195, '-'))
 
     gluejobexecution.sort(reverse=True, key=sort_jobexecution)
 
     for gluejob in gluejobexecution:
-        print(f'{gluejob.jobname:55} - {gluejob.jobrunstate:20} {gluejob.completedon.isoformat():40} {gluejob.executiontime:10}')
-    print(''.center(105, '-'))
+        print(
+            f'{gluejob.jobname:55} - {gluejob.jobrunstate:20} {gluejob.completedon.isoformat():40} {gluejob.executiontime:12} {gluejob.errormessage[:60]:60}')
+    print(''.center(195, '-'))
 
 
 if __name__ == "__main__":
