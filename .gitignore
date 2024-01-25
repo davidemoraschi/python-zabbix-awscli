@@ -20,3 +20,5 @@ dist/
 # Coverage
 htmlcov/
 .coverage
+output.txt
+products_feed_2024-01-09-0402.json
