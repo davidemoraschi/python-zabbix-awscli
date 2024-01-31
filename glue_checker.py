@@ -37,19 +37,21 @@ def main():
                 jobrunstate=response['JobRuns'][0]['JobRunState'],
                 startedon=response['JobRuns'][0]['StartedOn'],
                 completedon=response['JobRuns'][0]['CompletedOn'],
-                executiontime=response['JobRuns'][0]['ExecutionTime'])
+                executiontime=response['JobRuns'][0]['ExecutionTime'],
+                maxcapacity=response['JobRuns'][0]['MaxCapacity'])
             )
         else:
             print(f"Empry result: {job}")
 
-    print('Glue Job                                                - Last Status          Last Execution Date                Duration in Sec.')
-    print(''.center(105, '-'))
+    print('Glue Job                                                - Last Status          Last Execution Date                Duration in Sec.       Cost in USD')
+    print(''.center(150, '-'))
 
     gluejobexecution.sort(reverse=True, key=sort_jobexecution)
 
     for gluejob in gluejobexecution:
-        print(f'{gluejob.jobname:55} - {gluejob.jobrunstate:20} {gluejob.completedon.isoformat():40} {gluejob.executiontime:10}')
-    print(''.center(105, '-'))
+        run_cost=round(0.44*max(gluejob.executiontime,60)*gluejob.maxcapacity/(60*60),2)
+        print(f'{gluejob.jobname:55} - {gluejob.jobrunstate:20} {gluejob.completedon.isoformat():40} {gluejob.executiontime:10} {run_cost:15} $')
+    print(''.center(150, '-'))
 
 
 if __name__ == "__main__":
