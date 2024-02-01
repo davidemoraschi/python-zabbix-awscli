@@ -2,6 +2,8 @@
 '''
 #
 # Copyright (C) 2024 Davide Moraschi (davide.moraschi@toptal.com)
+# Invokes the AWS API get_job_runs to retrieve the last execution, status, cost and error if any 
+# of all Glue Jobs in the region/profile passed as arguments
 #
 '''
 
@@ -12,7 +14,10 @@ from classes.GlueJobExecution import GlueJobExecution
 
 def sort_jobexecution(gluejob):
     '''Return the completion date for sorting the list'''
-    return gluejob.completedon.isoformat()
+    if gluejob.jobrunstate != 'RUNNING':
+        return str(gluejob.completedon.isoformat())
+    else:
+        return '9999'
 
 
 def main():
@@ -35,30 +40,36 @@ def main():
                 errormessage = response['JobRuns'][0]['ErrorMessage']
             else:
                 errormessage = ''
+            if response['JobRuns'][0]['JobRunState'] == 'RUNNING':
+                completedon = '--'
+            else:
+                completedon = response['JobRuns'][0]['CompletedOn']
 
             gluejobexecution.append(GlueJobExecution(
                 jobname=response['JobRuns'][0]['JobName'],
                 jobrunid=response['JobRuns'][0]['Id'],
                 jobrunstate=response['JobRuns'][0]['JobRunState'],
                 startedon=response['JobRuns'][0]['StartedOn'],
-                completedon=response['JobRuns'][0]['CompletedOn'],
+                completedon=completedon,
                 executiontime=response['JobRuns'][0]['ExecutionTime'],
                 maxcapacity=response['JobRuns'][0]['MaxCapacity'],
-                errormessage=errormessage
+                errormessage=errormessage)
             )
-            )
-        else:
-            print(f"Empry result: {job}")
 
-    print('Glue Job                                                - Last Status          Last Execution Date                Duration in Sec.       Cost in USD')
-    print(''.center(150, '-'))
+    print('Glue Job                                                - Last Status          Last Execution Date                Duration in Sec.       Cost in USD  Error')
+    print(''.center(220, '-'))
 
     gluejobexecution.sort(reverse=True, key=sort_jobexecution)
 
     for gluejob in gluejobexecution:
-        run_cost=round(0.44*max(gluejob.executiontime,60)*gluejob.maxcapacity/(60*60),2)
-        print(f'{gluejob.jobname:55} - {gluejob.jobrunstate:20} {gluejob.completedon.isoformat():40} {gluejob.executiontime:10} {run_cost:15} $')
-    print(''.center(150, '-'))
+        run_cost = round(0.44*max(gluejob.executiontime, 60)*gluejob.maxcapacity/(60*60), 2)
+        if gluejob.jobrunstate == 'RUNNING':
+            completed_on = '--'
+        else:
+            completed_on = gluejob.completedon.isoformat()
+        print(
+            f'{gluejob.jobname:55} - {gluejob.jobrunstate:20} {completed_on:40} {gluejob.executiontime:10} {run_cost:15} $  {gluejob.errormessage[:60]:60}')
+    print(''.center(220, '-'))
 
 
 if __name__ == "__main__":
