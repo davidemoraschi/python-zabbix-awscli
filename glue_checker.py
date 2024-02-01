@@ -75,7 +75,6 @@ def main():
             )
 
     # pretty_print(gluejobexecution)
-
     json_return_list: list = []
 
     for gluejob in gluejobexecution:
