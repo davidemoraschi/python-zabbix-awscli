@@ -20,6 +20,23 @@ def sort_jobexecution(gluejob):
         return '9999'
 
 
+def pretty_print(gluejobexecution):
+    print('Glue Job                                                - Last Status          Last Execution Date                Duration in Sec.       Cost in USD  Error')
+    print(''.center(220, '-'))
+
+    gluejobexecution.sort(reverse=True, key=sort_jobexecution)
+
+    for gluejob in gluejobexecution:
+        run_cost = round(0.44*max(gluejob.executiontime, 60)*gluejob.maxcapacity/(60*60), 2)
+        if gluejob.jobrunstate == 'RUNNING':
+            completed_on = '--'
+        else:
+            completed_on = gluejob.completedon.isoformat()
+        print(
+            f'{gluejob.jobname:55} - {gluejob.jobrunstate:20} {completed_on:40} {gluejob.executiontime:10} {run_cost:15} $  {gluejob.errormessage[:60]:60}')
+    print(''.center(220, '-'))
+
+
 def main():
     '''Main function'''
 
@@ -56,20 +73,14 @@ def main():
                 errormessage=errormessage)
             )
 
-    print('Glue Job                                                - Last Status          Last Execution Date                Duration in Sec.       Cost in USD  Error')
-    print(''.center(220, '-'))
+    # pretty_print(gluejobexecution)
 
-    gluejobexecution.sort(reverse=True, key=sort_jobexecution)
+    json_return_list: list = []
 
     for gluejob in gluejobexecution:
-        run_cost = round(0.44*max(gluejob.executiontime, 60)*gluejob.maxcapacity/(60*60), 2)
-        if gluejob.jobrunstate == 'RUNNING':
-            completed_on = '--'
-        else:
-            completed_on = gluejob.completedon.isoformat()
-        print(
-            f'{gluejob.jobname:55} - {gluejob.jobrunstate:20} {completed_on:40} {gluejob.executiontime:10} {run_cost:15} $  {gluejob.errormessage[:60]:60}')
-    print(''.center(220, '-'))
+        json_return_list.append(gluejob.tojson().replace("'", ""))
+
+    print(str(json_return_list).replace("'", ""))
 
 
 if __name__ == "__main__":

@@ -1,14 +1,14 @@
 #!/usr/local/bin/python
 '''
-# Copyright (C) 2001-2023 Zabbix SIA
 #
-# Zabbix SIA licenses this file to you under the MIT License.
-# See the LICENSE file in the project root for more information.
-# Calls AWS AppFlow API to check for execution and returns the result to Zabbix
+# Copyright (C) 2024 Davide Moraschi (davide.moraschi@toptal.com)
+# Common class to retrieve Glue Job details from AWS API
+#
 '''
 
 import json
 import datetime
+
 
 class GlueJobExecution:
     '''class to hold results from AWS API calls'''
