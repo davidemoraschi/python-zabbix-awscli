@@ -31,6 +31,11 @@ def main():
     for job in joblist:
         response = client.get_job_runs(JobName=job, MaxResults=1)
         if response['JobRuns']:
+            if 'ErrorMessage' in response['JobRuns'][0].keys():
+                errormessage = response['JobRuns'][0]['ErrorMessage']
+            else:
+                errormessage = ''
+
             gluejobexecution.append(GlueJobExecution(
                 jobname=response['JobRuns'][0]['JobName'],
                 jobrunid=response['JobRuns'][0]['Id'],
@@ -38,7 +43,9 @@ def main():
                 startedon=response['JobRuns'][0]['StartedOn'],
                 completedon=response['JobRuns'][0]['CompletedOn'],
                 executiontime=response['JobRuns'][0]['ExecutionTime'],
-                maxcapacity=response['JobRuns'][0]['MaxCapacity'])
+                maxcapacity=response['JobRuns'][0]['MaxCapacity'],
+                errormessage=errormessage
+            )
             )
         else:
             print(f"Empry result: {job}")
