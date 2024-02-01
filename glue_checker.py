@@ -10,6 +10,7 @@
 import sys
 import boto3
 from classes.GlueJobExecution import GlueJobExecution
+from zabbix_utils import Sender
 
 
 def sort_jobexecution(gluejob):
@@ -81,6 +82,20 @@ def main():
         json_return_list.append(gluejob.tojson().replace("'", ""))
 
     print(str(json_return_list).replace("'", ""))
+    # Create an instance of the Sender class with the specified server details
+    # sender = Sender(**ZABBIX_SERVER)
+    sender = Sender('zabbix-server')
+    # Send a value to a Zabbix server/proxy with specified parameters
+    # Parameters: (host, key, value, clock, ns)
+    responses = sender.send_value('zabbix-server', 'github-to-s3', str(json_return_list).replace("'", ""))
+    for node, resp in responses.items():
+        # Check if the value sending was successful
+        if resp.failed == 0:
+            # Print a success message along with the response time
+            print(f"Value sent successfully to {node} in {resp.time}")
+        else:
+            # Print a failure message
+            print(f"Failed to send value to {node}")
 
 
 if __name__ == "__main__":
