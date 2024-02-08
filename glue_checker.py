@@ -15,10 +15,9 @@ from zabbix_utils import Sender
 
 def sort_jobexecution(gluejob):
     '''Return the completion date for sorting the list'''
-    if gluejob.jobrunstate != 'RUNNING':
+    if gluejob.completedon != '--':
         return str(gluejob.completedon.isoformat())
-    else:
-        return '9999'
+    return '9999'
 
 
 def send_to_zabbix(gluejobexecution):
@@ -48,19 +47,19 @@ def send_to_zabbix(gluejobexecution):
 
 def pretty_print(gluejobexecution):
     '''Display results on screen'''
-    print('Glue Job                                                - Last Status          Last Execution Date                Duration in Sec.       Cost in USD  Error')
+    print('Glue Job                                                - Last Status          Last Execution Date                Duration in Sec.       Cost in USD  Error')  # pylint: disable=line-too-long
     print(''.center(220, '-'))
 
     gluejobexecution.sort(reverse=True, key=sort_jobexecution)
 
     for gluejob in gluejobexecution:
         run_cost = round(0.44*max(gluejob.executiontime, 60)*gluejob.maxcapacity/(60*60), 2)
-        if gluejob.jobrunstate == 'RUNNING':
+        if gluejob.completedon == '--':
             completed_on = '--'
         else:
             completed_on = gluejob.completedon.isoformat()
         print(
-            f'{gluejob.jobname:55} - {gluejob.jobrunstate:20} {completed_on:40} {gluejob.executiontime:10} {run_cost:15} $  {gluejob.errormessage[:60]:60}')
+            f'{gluejob.jobname:55} - {gluejob.jobrunstate:20} {completed_on:40} {gluejob.executiontime:10} {run_cost:15} $  {gluejob.errormessage[:60]:60}')  # pylint: disable=line-too-long
     print(''.center(220, '-'))
 
 
@@ -69,8 +68,8 @@ def main():
 
     joblist: list = []
 
-    eu_west_1_session = boto3.Session(region_name=str(sys.argv[1]), profile_name=str(sys.argv[2]))
-    client = eu_west_1_session.client(service_name='glue')
+    profile_session = boto3.Session(region_name=str(sys.argv[1]), profile_name=str(sys.argv[2]))
+    client = profile_session.client(service_name='glue')
     response = client.get_jobs(MaxResults=1000)
 
     for element in response['Jobs']:
@@ -84,10 +83,10 @@ def main():
                 errormessage = response['JobRuns'][0]['ErrorMessage']
             else:
                 errormessage = ''
-            if response['JobRuns'][0]['JobRunState'] == 'RUNNING':
-                completedon = '--'
-            else:
+            if 'CompletedOn' in response['JobRuns'][0].keys():
                 completedon = response['JobRuns'][0]['CompletedOn']
+            else:
+                completedon = '--'
 
             gluejobexecution.append(GlueJobExecution(
                 jobname=response['JobRuns'][0]['JobName'],
