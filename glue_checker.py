@@ -21,7 +21,33 @@ def sort_jobexecution(gluejob):
         return '9999'
 
 
+def send_to_zabbix(gluejobexecution):
+    '''If a Zabbix server is available sends the JSON payload to it'''
+    json_return_list: list = []
+
+    for gluejob in gluejobexecution:
+        json_return_list.append(gluejob.tojson().replace("'", ""))
+
+    print(str(json_return_list).replace("'", ""))
+    # Create an instance of the Sender class with the specified server details
+    # sender = Sender(**ZABBIX_SERVER)
+    sender = Sender('zabbix-server')
+    # Send a value to a Zabbix server/proxy with specified parameters
+    # Parameters: (host, key, value, clock, ns)
+    responses = sender.send_value('zabbix-server', 'github-to-s3',
+                                  str(json_return_list).replace("'", ""))
+    for node, resp in responses.items():
+        # Check if the value sending was successful
+        if resp.failed == 0:
+            # Print a success message along with the response time
+            print(f"Value sent successfully to {node} in {resp.time}")
+        else:
+            # Print a failure message
+            print(f"Failed to send value to {node}")
+
+
 def pretty_print(gluejobexecution):
+    '''Display results on screen'''
     print('Glue Job                                                - Last Status          Last Execution Date                Duration in Sec.       Cost in USD  Error')
     print(''.center(220, '-'))
 
@@ -74,27 +100,8 @@ def main():
                 errormessage=errormessage)
             )
 
-    # pretty_print(gluejobexecution)
-    json_return_list: list = []
-
-    for gluejob in gluejobexecution:
-        json_return_list.append(gluejob.tojson().replace("'", ""))
-
-    print(str(json_return_list).replace("'", ""))
-    # Create an instance of the Sender class with the specified server details
-    # sender = Sender(**ZABBIX_SERVER)
-    sender = Sender('zabbix-server')
-    # Send a value to a Zabbix server/proxy with specified parameters
-    # Parameters: (host, key, value, clock, ns)
-    responses = sender.send_value('zabbix-server', 'github-to-s3', str(json_return_list).replace("'", ""))
-    for node, resp in responses.items():
-        # Check if the value sending was successful
-        if resp.failed == 0:
-            # Print a success message along with the response time
-            print(f"Value sent successfully to {node} in {resp.time}")
-        else:
-            # Print a failure message
-            print(f"Failed to send value to {node}")
+    pretty_print(gluejobexecution)
+    # send_to_zabbix(gluejobexecution)
 
 
 if __name__ == "__main__":
