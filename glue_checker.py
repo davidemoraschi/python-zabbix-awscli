@@ -79,6 +79,7 @@ def main():
     for job in joblist:
         response = client.get_job_runs(JobName=job, MaxResults=1)
         if response['JobRuns']:
+
             if 'ErrorMessage' in response['JobRuns'][0].keys():
                 errormessage = response['JobRuns'][0]['ErrorMessage']
             else:
@@ -86,7 +87,10 @@ def main():
             if 'CompletedOn' in response['JobRuns'][0].keys():
                 completedon = response['JobRuns'][0]['CompletedOn']
             else:
-                completedon = '--'
+                if response['JobRuns'][0]['ExecutionTime'] == 0:
+                    completedon = response['JobRuns'][0]['StartedOn']
+                else:
+                    completedon = '--'
 
             gluejobexecution.append(GlueJobExecution(
                 jobname=response['JobRuns'][0]['JobName'],
