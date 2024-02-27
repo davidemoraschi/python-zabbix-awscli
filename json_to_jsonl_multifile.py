@@ -1,3 +1,4 @@
+#!/usr/bin/python
 '''
 Merges multiple JSON files into one.,
 '''
