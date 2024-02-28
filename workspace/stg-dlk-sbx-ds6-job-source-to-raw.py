@@ -17,12 +17,29 @@ import requests
 import boto3
 from awsglue.utils import getResolvedOptions
 from gzip_s3_and_json_py3 import get_secret_credentials, upload_json_gz
-from common_functions import default_logging_config
+from common_functions import get_args, default_logging_config, log_environment
 from config import AWS_REGION, AWS_SECRET_NAME, S3_BUCKET, S3_PATH
 from TokenManager import TokenManager
 
+ARGS = sys.argv
+ENVIRONMENT = get_args(args=ARGS)
+
 logging.config.dictConfig(default_logging_config(level='DEBUG'))
 glue_job_logger = logging.getLogger(name='job')
+
+# Adds custom parameters
+params = []
+if '--credentials'  in sys.argv: params.append('credentials')
+if '--reportid'     in sys.argv: params.append('reportid')
+if '--JOB_NAME'     in sys.argv: params.append('JOB_NAME')
+
+# Retrieves all parameters
+args = getResolvedOptions(sys.argv, params)
+
+# Sets the report id and JOB_RUN_ID
+REPORT_ID   = args['reportid'] if 'reportid' in args else '10e865fe-75d1-49a5-bec4-b0db905023e4'
+JOB_NAME    = args['JOB_NAME'] if 'JOB_NAME' in args else 'stg-dlk-sbx-ds6-job-source-to-raw'
+JOB_RUN_ID  = int(time.time())
 
 def fibonacci(n):
     if n <= 1:
@@ -58,7 +75,6 @@ def download_export_report_csv(REPORT_ID, execution_id):
     while not is_completed:
         sleep_time = fibonacci(fibonacci_index)                         # Get the Fibonacci number
         fibonacci_index += 1                                            # Increment Fibonacci index for the next iteration
-        print(f'Waiting {sleep_time} second(s)')
         time.sleep(sleep_time)                                          # Sleep for the Fibonacci number of seconds
         response = requests.get(url=url, headers=headers)               # Calls the endpoint to get report status
         response.raise_for_status()                                     # Raise an exception for bad status codes
@@ -74,17 +90,11 @@ def download_export_report_csv(REPORT_ID, execution_id):
 def main():
     '''Guess what, I'm the main module...'''
 
-    # Adds custom parameters
-    params = []
-    if '--credentials'  in sys.argv: params.append('credentials')
-    if '--reportid'     in sys.argv: params.append('reportid')
+    # Mark the start of the Job execution for Monitoring with CloudWatch.
+    glue_job_logger.info('JOB_NAME.JOB_RUN_ID           : %s.%s | start-job', JOB_NAME, str(JOB_RUN_ID))
 
-    # Retrieves all parameters
-    args = getResolvedOptions(sys.argv, params)
-
-    # Sets the report id and JOB_RUN_ID
-    REPORT_ID = args['reportid'] if 'reportid' in args else '10e865fe-75d1-49a5-bec4-b0db905023e4'
-    JOB_RUN_ID = int(time.time())
+    # Prints to log several useful info for debugging purposes.
+    log_environment(logger=glue_job_logger, environment=ENVIRONMENT, job_name=JOB_NAME, job_run_id=JOB_RUN_ID, args=ARGS)
 
     # Runs the report and creates the csv
     execution_id = create_export_report_csv(REPORT_ID)
@@ -92,6 +102,7 @@ def main():
     # Downloads the zipped CSV
     filelist = download_export_report_csv(REPORT_ID, execution_id)
     
+    # Uploads them to the raw bucket
     s3client = boto3.client('s3')
     for csvfile in filelist:
         s3_filename = csvfile.filename
