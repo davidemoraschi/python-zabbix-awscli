@@ -8,14 +8,21 @@
 '''
 
 import io
+import logging.config
+import logging
 import sys
 import time
 import zipfile
 import requests
+import boto3
 from awsglue.utils import getResolvedOptions
-from gzip_s3_and_json_py3 import get_secret_credentials
-from config import AWS_REGION, AWS_SECRET_NAME
+from gzip_s3_and_json_py3 import get_secret_credentials, upload_json_gz
+from common_functions import default_logging_config
+from config import AWS_REGION, AWS_SECRET_NAME, S3_BUCKET, S3_PATH
 from TokenManager import TokenManager
+
+logging.config.dictConfig(default_logging_config(level='DEBUG'))
+glue_job_logger = logging.getLogger(name='job')
 
 def fibonacci(n):
     if n <= 1:
@@ -45,12 +52,13 @@ def download_export_report_csv(REPORT_ID, execution_id):
     token = retrieve_access_token()
     headers = {'Authorization': f'Bearer {token}'}
     is_completed = False
-    fibonacci_index = 0
+    fibonacci_index = 1
     url = f'https://clearcorrect.docebosaas.com/analytics/v1/reports/{REPORT_ID}/exports/{execution_id}'
 
     while not is_completed:
         sleep_time = fibonacci(fibonacci_index)                         # Get the Fibonacci number
         fibonacci_index += 1                                            # Increment Fibonacci index for the next iteration
+        print(f'Waiting {sleep_time} second(s)')
         time.sleep(sleep_time)                                          # Sleep for the Fibonacci number of seconds
         response = requests.get(url=url, headers=headers)               # Calls the endpoint to get report status
         response.raise_for_status()                                     # Raise an exception for bad status codes
@@ -61,6 +69,7 @@ def download_export_report_csv(REPORT_ID, execution_id):
     response.raise_for_status()                                         # Raise an exception for bad status codes
     with zipfile.ZipFile(io.BytesIO(response.content), 'r') as zip_ref: # Unzips the content on the fly
         zip_ref.extractall('./')                                        # Saves into current folder
+        return zip_ref.filelist
 
 def main():
     '''Guess what, I'm the main module...'''
@@ -73,14 +82,23 @@ def main():
     # Retrieves all parameters
     args = getResolvedOptions(sys.argv, params)
 
-    # Sets the report id
+    # Sets the report id and JOB_RUN_ID
     REPORT_ID = args['reportid'] if 'reportid' in args else '10e865fe-75d1-49a5-bec4-b0db905023e4'
+    JOB_RUN_ID = int(time.time())
 
     # Runs the report and creates the csv
     execution_id = create_export_report_csv(REPORT_ID)
 
     # Downloads the zipped CSV
-    download_export_report_csv(REPORT_ID, execution_id)
+    filelist = download_export_report_csv(REPORT_ID, execution_id)
+    
+    s3client = boto3.client('s3')
+    for csvfile in filelist:
+        s3_filename = csvfile.filename
+        with open(s3_filename, 'r') as file:
+            csvcontent = file.read()
+        upload_json_gz(glue_job_logger, s3client, S3_BUCKET, S3_PATH + f'{str(JOB_RUN_ID)}-{s3_filename}.gz', csvcontent)
+
 
 if __name__ == "__main__":
     main()
