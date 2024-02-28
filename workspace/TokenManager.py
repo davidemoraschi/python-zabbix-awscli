@@ -12,9 +12,10 @@ import requests
 
 
 class TokenManager:
-    '''Boa Constructor.'''
+    '''Class for managing access tokens.'''
 
     def __init__(self, token_url, credentials, refresh_token):
+        '''Initialize TokenManager with token URL, credentials, and refresh token.'''
         self.token_url = token_url
         self.credentials = credentials
         self.refresh_token = refresh_token
@@ -22,26 +23,21 @@ class TokenManager:
         self.token_expiration = None
 
     def get_token(self):
-        '''If the token is expired retrieves a new one and stores it for next request. Otherwise returns stored one.'''
-
+        '''Retrieve a new token if expired or return the stored one.'''
+        
         if self.access_token and self.token_expiration and self.token_expiration > datetime.now():
             return self.access_token
 
         headers = {'Content-Type': 'application/json'}
-        credentials_payload = json.dumps(self.credentials)
-        response = requests.post(self.token_url, headers=headers, data=credentials_payload)
-        if response.status_code == 200:
-            token_info = response.json()
-            self.access_token = token_info.get('access_token')
-            expires_in = token_info.get('expires_in')
-            self.token_expiration = datetime.now() + timedelta(seconds=expires_in)
-            return self.access_token
-        else:
-            raise Exception("Failed to retrieve token")
+        response = requests.post(self.token_url, headers=headers, json=self.credentials)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        token_info = response.json()
+        self.access_token = token_info.get('access_token')
+        expires_in = token_info.get('expires_in')
+        self.token_expiration = datetime.now() + timedelta(seconds=expires_in)
+        return self.access_token
 
     def is_token_valid(self):
-        '''Quickly checks if is valid.'''
+        '''Check if the token is valid.'''
         
-        if not self.access_token or not self.token_expiration:
-            return False
-        return self.token_expiration > datetime.now()
+        return self.access_token and self.token_expiration and self.token_expiration > datetime.now()

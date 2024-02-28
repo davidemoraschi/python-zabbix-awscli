@@ -12,7 +12,7 @@ import boto3
 import paramiko
 import base64
 import fnmatch
-from stat import S_ISDIR, S_ISREG
+from stat import S_ISREG
 
 
 def get_newest_file_from_sftp(logger, aws_region, aws_secret_name, ftp_folder, ftp_file_pattern, s3client, s3_bucket, s3_path):
