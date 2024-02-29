@@ -40,6 +40,7 @@ args = getResolvedOptions(sys.argv, params)
 REPORT_ID   = args['reportid'] if 'reportid' in args else '10e865fe-75d1-49a5-bec4-b0db905023e4'
 JOB_NAME    = args['JOB_NAME'] if 'JOB_NAME' in args else 'stg-dlk-sbx-ds6-job-source-to-raw'
 JOB_RUN_ID  = int(time.time())
+LOG_DELAY = 50/1000
 
 def fibonacci(n):
     if n <= 1:
@@ -92,6 +93,9 @@ def main():
 
     # Mark the start of the Job execution for Monitoring with CloudWatch.
     glue_job_logger.info('JOB_NAME.JOB_RUN_ID           : %s.%s | start-job', JOB_NAME, str(JOB_RUN_ID))
+    time.sleep(LOG_DELAY)
+    glue_job_logger.info('REPORT_ID                     : %s', REPORT_ID)
+    time.sleep(LOG_DELAY)
 
     # Prints to log several useful info for debugging purposes.
     log_environment(logger=glue_job_logger, environment=ENVIRONMENT, job_name=JOB_NAME, job_run_id=JOB_RUN_ID, args=ARGS)
@@ -109,6 +113,9 @@ def main():
         with open(s3_filename, 'r') as file:
             csvcontent = file.read()
         upload_json_gz(glue_job_logger, s3client, S3_BUCKET, S3_PATH + f'{str(JOB_RUN_ID)}-{s3_filename}.gz', csvcontent)
+
+    # Mark the end of the Job execution for Monitoring with CloudWatch.
+    glue_job_logger.info('JOB_NAME.JOB_RUN_ID           : %s.%s | end-job', JOB_NAME, str(JOB_RUN_ID))
 
 
 if __name__ == "__main__":
