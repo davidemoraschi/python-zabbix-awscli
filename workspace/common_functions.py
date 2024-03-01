@@ -14,7 +14,7 @@ from typing import Dict
 import boto3
 import awswrangler as wr
 from tabulate import tabulate
-from config import AWS_REGION, AWS_BUCKET, AWS_FOLDER, AWS_ATHENA_DATABASE, AWS_ATHENA_OUPUT, AWS_PROFILE
+from config import AWS_REGION, AWS_BUCKET, AWS_FOLDER, AWS_ATHENA_DATABASE, AWS_ATHENA_OUPUT, AWS_PROFILE, S3_BUCKET, S3_PATH
 
 LOG_DELAY = 50/1000
 
@@ -48,38 +48,25 @@ def execute_s3_sql_files_athena(logger, environment):
             if df.shape[0] > 0:
                 logger.info('\n' + tabulate(df, headers=df.keys(), tablefmt='psql', showindex=False))
 
-
-def log_environment(logger, environment, job_name, job_run_id, args):
+def log_environment():
     '''Logs variables for the job'''
 
-    if environment != 'vscode':
-        logger.info('Arguments              : %s', args)
-        time.sleep(LOG_DELAY)
-        logger.info('Environment            : %s', environment)
-        time.sleep(LOG_DELAY)
-        logger.info('Platform               : %s', platform.platform())
-        time.sleep(LOG_DELAY)
-        logger.info('Python                 : %s', platform.python_version())
-        time.sleep(LOG_DELAY)
-        logger.info('PYTHONPATH             : %s', sys.path)
-        time.sleep(LOG_DELAY)
-        logger.info('boto3                  : %s', boto3.__version__)
-        time.sleep(LOG_DELAY)
-        logger.info('awswrangler            : %s', wr.__version__)
-        time.sleep(LOG_DELAY)
-        logger.info('JOB_SCRIPT             : %s', str(sys.argv[0]))
-        time.sleep(LOG_DELAY)
-        logger.info('JOB_NAME               : %s', job_name)
-        time.sleep(LOG_DELAY)
-        logger.info('JOB_RUN_ID             : %s', job_run_id)
-        time.sleep(LOG_DELAY)
-        logger.info('AWS_REGION             : %s', AWS_REGION)
-        time.sleep(LOG_DELAY)
-        logger.info('AWS_BUCKET             : %s', AWS_BUCKET)
-        time.sleep(LOG_DELAY)
-        logger.info('AWS_ATHENA_DATABASE    : %s', AWS_ATHENA_DATABASE)
-        time.sleep(LOG_DELAY)
+    env_dict = {}
+    env_dict["Platform"]                = platform.platform()
+    env_dict["Python"]                  = platform.python_version()
+    #env_dict["PYTHONPATH"]              = sys.path
+    env_dict["boto3"]                   = boto3.__version__
+    env_dict["awswrangler"]             = wr.__version__
+    env_dict["AWS_REGION"]              = AWS_REGION
+    env_dict["AWS_BUCKET"]              = AWS_BUCKET
+    env_dict["AWS_ATHENA_DATABASE"]     = AWS_ATHENA_DATABASE
+    env_dict["S3_BUCKET"]               = S3_BUCKET
+    env_dict["S3_PATH"]                 = S3_PATH
 
+    time.sleep(LOG_DELAY)
+    print(tabulate(env_dict.items(), headers=['variable','value'], tablefmt='psql', showindex=False))
+    time.sleep(LOG_DELAY)
+    print(f'PYTHONPATH: {sys.path}')
 
 def get_args(args):
     '''Reads arguments from command line'''
@@ -90,14 +77,12 @@ def get_args(args):
             break
     return env_value
 
-
 class InfoDebugFilter(logging.Filter):
     '''I don't know what to write here, it's just a class that I copied from somewhere.'''
 
     def filter(self, record):
         """Filter debug and info messages."""
         return record.levelno in (logging.DEBUG, logging.INFO)
-
 
 def default_logging_config(level: str = "INFO", formatter_name: str = "detailed") -> Dict:
     """

@@ -15,32 +15,55 @@ import time
 import zipfile
 import requests
 import boto3
+from tabulate import tabulate
 from awsglue.utils import getResolvedOptions
 from gzip_s3_and_json_py3 import get_secret_credentials, upload_json_gz
 from common_functions import get_args, default_logging_config, log_environment
 from config import AWS_REGION, AWS_SECRET_NAME, S3_BUCKET, S3_PATH
 from TokenManager import TokenManager
 
-ARGS = sys.argv
-ENVIRONMENT = get_args(args=ARGS)
+LOG_DELAY = 50/1000
 
 logging.config.dictConfig(default_logging_config(level='DEBUG'))
 glue_job_logger = logging.getLogger(name='job')
 
-# Adds custom parameters
-params = []
-if '--credentials'  in sys.argv: params.append('credentials')
-if '--reportid'     in sys.argv: params.append('reportid')
-if '--JOB_NAME'     in sys.argv: params.append('JOB_NAME')
+def log(str_message):
+    # glue_job_logger.info(f'WORKFLOW_NAME           : {workflow_name}')
+    glue_job_logger.info(f'WORKFLOW_NAME.WORKFLOW_RUN_ID|JOB_NAME.JOB_RUN_ID        : {WORKFLOW_NAME}.{WORKFLOW_RUN_ID}|{JOB_NAME}.{JOB_RUN_ID} {str_message}')
+    time.sleep(LOG_DELAY)
 
-# Retrieves all parameters
-args = getResolvedOptions(sys.argv, params)
+try:
+    args = getResolvedOptions(sys.argv, ['WORKFLOW_NAME', 'WORKFLOW_RUN_ID', 'REPORT_IDS'])
+    print(tabulate(args.items(), headers=['args.keys()','args.values()'], tablefmt='psql', showindex=False))
+    workflow_name = args['WORKFLOW_NAME']
+    workflow_run_id = args['WORKFLOW_RUN_ID']
+    print('Running from a Workflow')
+    glue_job_logger.info('WORKFLOW_NAME           : %s', workflow_name)
+    time.sleep(LOG_DELAY)
+    glue_job_logger.info('WORKFLOW_RUN_ID           : %s', workflow_run_id)
+    time.sleep(LOG_DELAY)
+except Exception as exc:
+    print('Running outside Workflow')
 
-# Sets the report id and JOB_RUN_ID
-REPORT_ID   = args['reportid'] if 'reportid' in args else '10e865fe-75d1-49a5-bec4-b0db905023e'
-JOB_NAME    = args['JOB_NAME'] if 'JOB_NAME' in args else 'stg-dlk-sbx-ds6-job-source-to-raw'
-JOB_RUN_ID  = int(time.time())
-LOG_DELAY = 50/1000
+# sys.exit()
+
+# ARGS = sys.argv
+# ENVIRONMENT = get_args(args=ARGS)
+
+
+# # Adds custom parameters
+# params = []
+# if '--credentials'  in sys.argv: params.append('credentials')
+# if '--reportid'     in sys.argv: params.append('reportid')
+# if '--JOB_NAME'     in sys.argv: params.append('JOB_NAME')
+
+# # Retrieves all parameters
+# args = getResolvedOptions(sys.argv, params)
+
+# # Sets the report id and JOB_RUN_ID
+# REPORT_ID   = args['reportid'] if 'reportid' in args else '10e865fe-75d1-49a5-bec4-b0db905023e'
+# JOB_NAME    = args['JOB_NAME'] if 'JOB_NAME' in args else 'stg-dlk-sbx-ds6-job-source-to-raw'
+# JOB_RUN_ID  = int(time.time())
 
 def fibonacci(n):
     if n <= 1:
