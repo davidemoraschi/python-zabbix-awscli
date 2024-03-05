@@ -4,33 +4,30 @@
 '''
 
 import boto3
+import tabulate
 
-# Create an SNS client
-sns = boto3.client('sns')
+try:
+    x = 1/0
+    print(x)
 
-# Create a new topic
-response = sns.create_topic(
-    Name='ds6-failure-topic'
-)
+except Exception as exc:
+    # Create an SNS client
+    sns = boto3.client('sns')
 
-# Print the topic ARN
-print(response['TopicArn'])
+    # Create a new topic
+    response = sns.create_topic(
+        Name='ds6-failure-topic'
+    )
 
-# # Subscribe an email address to the topic
-# response = sns.subscribe(
-#     TopicArn='arn:aws:sns:eu-west-1:816247855850:ds6-failure-topic',
-#     Protocol='email',
-#     Endpoint='davide.moraschi@straumann.com'
-# )
+    # Print the topic ARN
+    print(response['TopicArn'])
 
-# # Print the subscription ARN
-# print(response['SubscriptionArn'])
+    # Publish a message to the topic
+    response = sns.publish(
+        TopicArn='arn:aws:sns:eu-west-1:816247855850:ds6-failure-topic',
+        Message=(tabulate.tabulate([['Alice', 24], ['Bob', 19]], headers=['Name', 'Age'], tablefmt='psql', showindex=False))
+    )
 
-# Publish a message to the topic
-response = sns.publish(
-    TopicArn='arn:aws:sns:eu-west-1:816247855850:ds6-failure-topic',
-    Message='This is a test message'
-)
-
-# Print the message ID
-print(response['MessageId'])
+    # Print the message ID
+    print(response['MessageId'])
+    
