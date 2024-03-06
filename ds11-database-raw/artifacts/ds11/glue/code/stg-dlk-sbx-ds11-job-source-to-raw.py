@@ -8,7 +8,6 @@
 '''
 
 # Import necessary modules
-from ast import Dict
 import json
 import time
 import boto3
@@ -44,7 +43,7 @@ def move_to_processed_folder(s3_client: Any, from_file_key: Any, to_file_key: An
     except Exception as exc:
         # Log the exception
         log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
-            job_run_id=JOB_RUN_ID, str_message=f'An error occurred:{str(exc)}')
+            job_run_id=str(JOB_RUN_ID), str_message=f'An error occurred:{str(exc)}')
         raise
 
 
@@ -57,7 +56,7 @@ def main() -> None:
 
         # Log start of job
         log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
-            job_run_id=JOB_RUN_ID, str_message='start-job')
+            job_run_id=str(JOB_RUN_ID), str_message='start-job')
 
         # Creates boto3 session/client
         glue_job_session = boto3.Session()
@@ -90,15 +89,15 @@ def main() -> None:
     except Exception as exc:
         # Log error
         log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
-            job_run_id=JOB_RUN_ID, str_message=f'An error occurred:{str(exc)}')
+            job_run_id=str(JOB_RUN_ID), str_message=f'An error occurred:{str(exc)}')
 
         # Send SNS notification of error
         send_sns(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
-                 job_run_id=JOB_RUN_ID, exc=exc)
+                 job_run_id=str(JOB_RUN_ID), exc=exc)
 
         # Log end of job
         log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
-            job_run_id=JOB_RUN_ID, str_message='end-job')
+            job_run_id=str(JOB_RUN_ID), str_message='end-job')
 
         # Reraise exception
         raise

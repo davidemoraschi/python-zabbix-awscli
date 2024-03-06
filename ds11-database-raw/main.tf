@@ -182,6 +182,9 @@ resource "aws_glue_job" "glue_job" {
     # "--region"                  = "eu-west-1"
     "--job-bookmark-option"       = "job-bookmark-disable"
     "--job-language"              = "python"
+    "--WORKFLOW_NAME"             = "no_workflow"
+    "--WORKFLOW_RUN_ID"           = "0"
+    "--EVENT_TYPES"               = "[\"PAGE_VIEW\",\"BIOMATERIAL_STATE_UPDATE\",\"BIOMATERIAL_MILESTONE_UPDATE\"]"
     "--TempDir"                   = "s3://stg-dlk-sbx-glue-job-temporary-files/temporary/"
   }
   tags = {
