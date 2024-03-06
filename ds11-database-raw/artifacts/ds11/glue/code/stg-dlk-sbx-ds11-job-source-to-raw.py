@@ -7,6 +7,7 @@
 # davide.moraschi@toptal.com 2024
 '''
 
+# Import necessary modules
 from ast import Dict
 import json
 import time
@@ -19,27 +20,32 @@ from typing import Dict, List
 from typing import Any
 
 # Process command line arguments
-args: Dict[str, str] = process_arguments(options=['WORKFLOW_NAME', 'WORKFLOW_RUN_ID', 'EVENT_NAMES'])
+args: Dict[str, str] = process_arguments(options=['WORKFLOW_NAME', 'WORKFLOW_RUN_ID', 'EVENT_TYPES'])
 
 # Print arguments for debugging
 print(tabulate(tabular_data=args.items(), headers=['args.keys()', 'args.values()'], tablefmt='psql', showindex=False))
 
-# Parse report IDs, workflow name, EVENT_NAMES, and job name from arguments
-EVENT_NAMES: List[str] = json.loads(args['EVENT_NAMES'])
+# Parse report IDs, workflow name, EVENT_TYPES, and job name from arguments
+EVENT_TYPES: List[str] = json.loads(args['EVENT_TYPES'])
 WORKFLOW_NAME: str = args['WORKFLOW_NAME']
 WORKFLOW_RUN_ID: str = args['WORKFLOW_RUN_ID']
 JOB_NAME: str = args['JOB_NAME'] if 'JOB_NAME' in args else 'stg-dlk-sbx-ds11-job-source-to-raw'
 JOB_RUN_ID: int = int(time.time())
 
-# logging.config.dictConfig(default_logging_config(level='DEBUG'))
-# glue_job_logger = logging.getLogger(name='job')
-
 
 def move_to_processed_folder(s3_client: Any, from_file_key: Any, to_file_key: Any) -> None:
     '''Moves a file from one source folder to a destination one'''
 
-    s3_client.copy_object(Bucket=AWS_BUCKET, CopySource=AWS_BUCKET + '/' + from_file_key.key, Key=S3_PROCESSED_FOLDER + to_file_key)
-    # s3_client.delete_object(Bucket=AWS_BUCKET, Key=from_file_key.key)
+    # Copy the file to the destination folder
+    try:
+        s3_client.copy_object(Bucket=AWS_BUCKET, CopySource=AWS_BUCKET + '/' + from_file_key.key, Key=S3_PROCESSED_FOLDER + to_file_key)
+        # Delete the original file (commented out)
+        # s3_client.delete_object(Bucket=AWS_BUCKET, Key=from_file_key.key)
+    except Exception as exc:
+        # Log the exception
+        log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
+            job_run_id=JOB_RUN_ID, str_message=f'An error occurred:{str(exc)}')
+        raise
 
 
 def main() -> None:
@@ -51,7 +57,7 @@ def main() -> None:
 
         # Log start of job
         log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
-            job_run_id=JOB_NAME, str_message='start-job')
+            job_run_id=JOB_RUN_ID, str_message='start-job')
 
         # Creates boto3 session/client
         glue_job_session = boto3.Session()
@@ -66,8 +72,9 @@ def main() -> None:
 
             # Gets the file
             if not json_file.key.endswith('/'):  # Check if the file is not a folder
-                event_name = json_file.key.split(AWS_FOLDER)[1].split('/')[1].split('.')[1]
-                if event_name in EVENT_NAMES: 
+                # Gets the event type from the file name
+                event_type = json_file.key.split(AWS_FOLDER)[1].split('/')[1].split('.')[1]
+                if event_type in EVENT_TYPES: 
                     # Reads the file
                     s3_file = s3_client.get_object(Bucket=AWS_BUCKET, Key=json_file.key)
                     json_payload = s3_file['Body'].read().decode('utf-8')
@@ -75,28 +82,26 @@ def main() -> None:
                     # Uploads to S3 raw bucket/folder
                     s3_filename = json_file.key.split(AWS_FOLDER)[1].split('/')[1]
                     upload_json_gz(s3client=s3_client,bucket=S3_DESTINATION_BUCKET,
-                                   key=S3_DESTINATION_PATH + event_name + '/{0}.gz'.format(s3_filename),obj=json_payload)
+                                   key=S3_DESTINATION_PATH + event_type + '/{0}.gz'.format(s3_filename),obj=json_payload)
 
                     # Moves it from the ext folder to the processed one
                     move_to_processed_folder(s3_client=s3_client, from_file_key=json_file,to_file_key=s3_filename)
 
-
     except Exception as exc:
         # Log error
         log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
-            job_run_id=JOB_NAME, str_message=f'An error occurred:{str(exc)}')
+            job_run_id=JOB_RUN_ID, str_message=f'An error occurred:{str(exc)}')
 
         # Send SNS notification of error
         send_sns(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
-                 job_run_id=JOB_NAME, exc=exc)
+                 job_run_id=JOB_RUN_ID, exc=exc)
 
         # Log end of job
         log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
-            job_run_id=JOB_NAME, str_message='end-job')
+            job_run_id=JOB_RUN_ID, str_message='end-job')
 
         # Reraise exception
         raise
-
 
 # Run main function if script is run directly
 if __name__ == "__main__":

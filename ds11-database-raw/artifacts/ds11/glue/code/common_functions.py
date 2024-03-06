@@ -153,22 +153,27 @@ def execute_s3_sql_files_athena(logger, environment):
 def log_environment():
     '''Logs variables for the job'''
 
-    env_dict = {}
-    env_dict["Platform"] = platform.platform()
-    env_dict["Python"] = platform.python_version()
-    # env_dict["PYTHONPATH"]              = sys.path
-    env_dict["boto3"] = boto3.__version__
-    env_dict["awswrangler"] = wr.__version__
-    env_dict["AWS_REGION"] = AWS_REGION
-    env_dict["AWS_BUCKET"] = AWS_BUCKET
-    env_dict["AWS_ATHENA_DATABASE"] = AWS_ATHENA_DATABASE
-    env_dict["S3_BUCKET"] = S3_DESTINATION_BUCKET
-    env_dict["S3_PATH"] = S3_DESTINATION_PATH
+    try:
+        env_dict = {}
+        env_dict["Platform"] = platform.platform()
+        env_dict["Python"] = platform.python_version()
+        env_dict["boto3"] = boto3.__version__
+        env_dict["awswrangler"] = wr.__version__
+        env_dict["AWS_REGION"] = AWS_REGION
+        env_dict["AWS_BUCKET"] = AWS_BUCKET
+        env_dict["AWS_ATHENA_DATABASE"] = AWS_ATHENA_DATABASE
+        env_dict["S3_BUCKET"] = S3_DESTINATION_BUCKET
+        env_dict["S3_PATH"] = S3_DESTINATION_PATH
 
-    time.sleep(LOG_DELAY)
-    print(tabulate(env_dict.items(), headers=['variable', 'value'], tablefmt='psql', showindex=False))
-    time.sleep(LOG_DELAY)
-    print(f'PYTHONPATH: {sys.path}')
+        time.sleep(LOG_DELAY)
+        print(tabulate(env_dict.items(), headers=['variable', 'value'], tablefmt='psql', showindex=False))
+        time.sleep(LOG_DELAY)
+        print(f'PYTHONPATH: {sys.path}')
+    except Exception as exc:
+        # Log the exception
+        # log(workflow_name=workflow_name, workflow_run_id=workflow_run_id, job_name=job_name,
+        #    job_run_id=job_run_id, str_message=f'An error occurred:{str(exc)}')
+        raise
 
 
 def get_args(args):
@@ -184,9 +189,15 @@ def get_args(args):
 def send_sns(workflow_name: str, workflow_run_id: str, job_name: str, job_run_id: str, exc: Any) -> None:
     '''Sends an SNS message to the failure topic'''
 
-    sns = boto3.client('sns')
-    response = sns.publish(TopicArn=SNS_FAILURE_TOPIC,
-                           Message=f'WORKFLOW_NAME={workflow_name}\nWORKFLOW_RUN_ID={workflow_run_id}\nJOB_NAME={job_name}\nJOB_RUN_ID={job_run_id}\n{str(exc)}')
+    try:
+        sns = boto3.client('sns')
+        response = sns.publish(TopicArn=SNS_FAILURE_TOPIC,
+                               Message=f'WORKFLOW_NAME={workflow_name}\nWORKFLOW_RUN_ID={workflow_run_id}\nJOB_NAME={job_name}\nJOB_RUN_ID={job_run_id}\n{str(exc)}')
+    except Exception as exc:
+        # Log the exception
+        # log(workflow_name=workflow_name, workflow_run_id=workflow_run_id, job_name=job_name,
+        #    job_run_id=job_run_id, str_message=f'An error occurred:{str(exc)}')
+        raise
 
 
 if __name__ == '__main__':

@@ -60,13 +60,19 @@ def get_secret_credentials(aws_region, aws_secret_name):
 
 def upload_json_gz(s3client, bucket, key, obj, default=None, encoding='utf-8'):
     ''' upload python dict into s3 bucket with gzip archive '''
-    inmem = io.BytesIO()
-    with gzip.GzipFile(fileobj=inmem, mode='wb') as fh:
-        with io.TextIOWrapper(fh, encoding=encoding) as wrapper:# type: ignore
-            wrapper.write(obj)
-    inmem.seek(0)
-    # logger.info('Uploading file: %s', bucket + '/' + key)
-    s3client.put_object(Bucket=bucket, Body=inmem, Key=key)
+
+    try:
+        inmem = io.BytesIO()
+        with gzip.GzipFile(fileobj=inmem, mode='wb') as fh:
+            with io.TextIOWrapper(fh, encoding=encoding) as wrapper:# type: ignore
+                wrapper.write(obj)
+        inmem.seek(0)
+        s3client.put_object(Bucket=bucket, Body=inmem, Key=key)
+    except Exception as exc:
+        # Log the exception
+        # log(workflow_name=workflow_name, workflow_run_id=workflow_run_id, job_name=job_name,
+        #    job_run_id=job_run_id, str_message=f'An error occurred:{str(exc)}')
+        raise
 
 
 def download_json_gz(logger, s3client, bucket, key):
