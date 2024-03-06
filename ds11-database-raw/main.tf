@@ -16,6 +16,7 @@ locals {
   datasource               = "ds${var.datasource_number}"
   ext_bucket_name          = "stg-dlk-sbx-ds-${var.datasource_number}-ext"
   raw_bucket_name          = "stg-dlk-sbx-ds-${var.datasource_number}-raw"
+  refined_bucket_name      = "stg-dlk-sbx-ds-${var.datasource_number}-refined"
   datasource_bucket_folder = "events_feed/events_jsonl_gzip/"
   artifacts_bucket_name    = "stg-dlk-sbx-code-artifacts"
   database_name            = "stg-dlk-sbx-ds${var.datasource_number}-raw-db"
@@ -24,14 +25,14 @@ locals {
   kms_key_arn              = "arn:aws:kms:eu-west-1:816247855850:key/396cd8ff-4b3d-4b17-9df4-9449185fdd2e"
 }
 
-resource "aws_s3_bucket" "bucket" {
+resource "aws_s3_bucket" "raw_bucket" {
   bucket              = local.raw_bucket_name
   force_destroy       = true
   object_lock_enabled = false
 }
 
 resource "aws_s3_bucket_public_access_block" "bucket_access_block" {
-  bucket                  = aws_s3_bucket.bucket.id
+  bucket                  = aws_s3_bucket.raw_bucket.id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
@@ -50,7 +51,7 @@ resource "aws_iam_policy" "job_role_policy" {
   policy = templatefile("${path.module}/artifacts/ds11/glue/policies/glue-role-policy.json", {  
     account_id          = data.aws_caller_identity.current.account_id
     region              = data.aws_region.current.name
-    resource-arn        = aws_s3_bucket.bucket.arn
+    resource-arn        = aws_s3_bucket.raw_bucket.arn
     ext-resource-arn    = "arn:aws:s3:::${local.ext_bucket_name}"
     db_name             = local.database_name
     failure_topic_name  = "ds${var.datasource_number}-failure-topic"
@@ -63,65 +64,116 @@ resource "aws_iam_role_policy_attachment" "role_policy_attachment" {
 }
 
 resource "aws_lakeformation_resource" "data_location" {
-  arn      = aws_s3_bucket.bucket.arn
+  arn      = aws_s3_bucket.raw_bucket.arn
   role_arn = aws_iam_role.job_role.arn
 }
 
-resource "aws_glue_catalog_database" "glue_database" {
+resource "aws_glue_catalog_database" "raw_glue_database" {
   name         = local.database_name
   description  = "Glue catalog db for ${local.datasource} raw zone."
   location_uri = "s3://${local.raw_bucket_name}"
 }
 
-resource "aws_lakeformation_permissions" "database_permissions" {
+resource "aws_lakeformation_permissions" "raw_database_permissions" {
   principal   = aws_iam_role.job_role.arn
   permissions = ["CREATE_TABLE", "DESCRIBE"]
   database {
-    name = aws_glue_catalog_database.glue_database.name
+    name = aws_glue_catalog_database.raw_glue_database.name
   }
 }
 
-resource "aws_lakeformation_permissions" "tables_permissions" {
+resource "aws_lakeformation_permissions" "raw_tables_permissions" {
   principal   = aws_iam_role.job_role.arn
   permissions = ["ALL"]
   table {
-    database_name = aws_glue_catalog_database.glue_database.name
+    database_name = aws_glue_catalog_database.raw_glue_database.name
     wildcard      = true
   }
 }
 
-resource "aws_glue_catalog_table" "events_jsonl_gzip" {
-  name          = "events_jsonl_gzip"
-  database_name = aws_glue_catalog_database.glue_database.name
+resource "aws_glue_catalog_table" "page_views_jsonl_gzip" {
+  name          = "page_views_jsonl_gzip"
+  database_name = aws_glue_catalog_database.raw_glue_database.name
   table_type    = "EXTERNAL_TABLE"
   parameters    = { "EXTERNAL" = "TRUE" }
   storage_descriptor {
-    location      = "s3://${local.raw_bucket_name}/${local.datasource_bucket_folder}"
+    location      = "s3://${local.raw_bucket_name}/${local.datasource_bucket_folder}PAGE_VIEW/"
     input_format  = "org.apache.hadoop.mapred.TextInputFormat"
     output_format = "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
     ser_de_info {
       name                  = "json_serde"
       serialization_library = "org.openx.data.jsonserde.JsonSerDe"
-      parameters            = { "paths" = "cdpid,firstname,lastname,profession,lettersalutation" }
+      parameters            = { "paths" = "contactid,eventtype,eventattributes" }
     }
     columns {
-      name = "crmid"
+      name = "contactid"
       type = "string"
     }
     columns {
-      name = "firstname"
+      name = "eventtype"
       type = "string"
     }
     columns {
-      name = "lastname"
+      name = "eventattributes"
+      # type = "struct<applicationname:string, pageurl:string>"
+      type = "string"
+    }
+  }
+}
+
+resource "aws_glue_catalog_table" "biomaterial_state_updates_jsonl_gzip" {
+  name          = "biomaterial_state_updates_jsonl_gzip"
+  database_name = aws_glue_catalog_database.raw_glue_database.name
+  table_type    = "EXTERNAL_TABLE"
+  parameters    = { "EXTERNAL" = "TRUE" }
+  storage_descriptor {
+    location      = "s3://${local.raw_bucket_name}/${local.datasource_bucket_folder}BIOMATERIAL_STATE_UPDATE/"
+    input_format  = "org.apache.hadoop.mapred.TextInputFormat"
+    output_format = "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
+    ser_de_info {
+      name                  = "json_serde"
+      serialization_library = "org.openx.data.jsonserde.JsonSerDe"
+      parameters            = { "paths" = "contactid,eventtype,eventattributes" }
+    }
+    columns {
+      name = "contactid"
       type = "string"
     }
     columns {
-      name = "profession"
+      name = "eventtype"
       type = "string"
     }
     columns {
-      name = "lettersalutation"
+      name = "eventattributes"
+      type = "string"
+    }
+  }
+}
+
+resource "aws_glue_catalog_table" "biomaterial_milestone_updates_jsonl_gzip" {
+  name          = "biomaterial_milestone_updates_jsonl_gzip"
+  database_name = aws_glue_catalog_database.raw_glue_database.name
+  table_type    = "EXTERNAL_TABLE"
+  parameters    = { "EXTERNAL" = "TRUE" }
+  storage_descriptor {
+    location      = "s3://${local.raw_bucket_name}/${local.datasource_bucket_folder}BIOMATERIAL_MILESTONE_UPDATE/"
+    input_format  = "org.apache.hadoop.mapred.TextInputFormat"
+    output_format = "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
+    ser_de_info {
+      name                  = "json_serde"
+      serialization_library = "org.openx.data.jsonserde.JsonSerDe"
+      parameters            = { "paths" = "contactid,eventtype,eventattributes" }
+    }
+    columns {
+      name = "contactid"
+      type = "string"
+    }
+    columns {
+      name = "eventtype"
+      type = "string"
+    }
+    columns {
+      name = "eventattributes"
       type = "string"
     }
   }
@@ -226,4 +278,40 @@ resource "aws_sns_topic_subscription" "failure_email" {
   topic_arn = aws_sns_topic.failure_topic.arn
   protocol  = "email"  
   endpoint  = "davide.moraschi@straumann.com"
+}
+
+# # Refined zone
+# resource "aws_s3_bucket" "refined_bucket" {
+#   bucket              = local.refined_bucket_name
+#   force_destroy       = true
+#   object_lock_enabled = false
+# }
+
+# resource "aws_lakeformation_resource" "data_location" {
+#   arn      = aws_s3_bucket.refined_bucket.arn
+#   role_arn = aws_iam_role.job_role.arn
+# }
+
+resource "aws_glue_catalog_database" "refined_glue_database" {
+  name         = "stg-dlk-sbx-ds${var.datasource_number}-refined-db"
+  description  = "Glue catalog db for ${local.datasource} refined zone."
+  location_uri = "s3://${local.refined_bucket_name}"
+}
+
+resource "aws_lakeformation_permissions" "refined_database_permissions" {
+  principal   = aws_iam_role.job_role.arn
+  permissions = ["CREATE_TABLE", "DESCRIBE"]
+  database {
+    name = aws_glue_catalog_database.refined_glue_database.name
+  }
+}
+
+resource "aws_lakeformation_permissions" "refined_tables_permissions" {
+  principal   = aws_iam_role.job_role.arn
+  permissions = ["ALL"]
+  table {
+    database_name = aws_glue_catalog_database.refined_glue_database.name
+    wildcard      = true
+  }
+
 }
