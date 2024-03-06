@@ -26,3 +26,7 @@ workspace/Marcom_Galileo_Data_Pipeline_Users_-_Test.csv
 
 .terraform
 *.exe
+.vs/slnx.sqlite
+.vs/python-zabbix-utils/FileContentIndex/read.lock
+.gitignore
+*.vsidx
