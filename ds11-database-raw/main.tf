@@ -38,32 +38,33 @@ resource "aws_s3_bucket_public_access_block" "bucket_access_block" {
   restrict_public_buckets = true
 }
 
-resource "aws_iam_role" "role" {
+resource "aws_iam_role" "job_role" {
   name               = local.role_name
   # assume_role_policy = templatefile("./trust-policy.json", { service = "glue.amazonaws.com" })
   assume_role_policy = templatefile("${path.module}/artifacts/ds11/glue/policies/trust-policy.json", { service = "glue.amazonaws.com" })
 }
 
-resource "aws_iam_policy" "role_policy" {
+resource "aws_iam_policy" "job_role_policy" {
   name = "${local.role_name}_policy"
   # policy = templatefile("./glue-role-policy.json", {
   policy = templatefile("${path.module}/artifacts/ds11/glue/policies/glue-role-policy.json", {  
-    account_id       = data.aws_caller_identity.current.account_id
-    region           = data.aws_region.current.name
-    resource-arn     = aws_s3_bucket.bucket.arn
-    ext-resource-arn = "arn:aws:s3:::${local.ext_bucket_name}"
-    db_name          = local.database_name
+    account_id          = data.aws_caller_identity.current.account_id
+    region              = data.aws_region.current.name
+    resource-arn        = aws_s3_bucket.bucket.arn
+    ext-resource-arn    = "arn:aws:s3:::${local.ext_bucket_name}"
+    db_name             = local.database_name
+    failure_topic_name  = "ds${var.datasource_number}-failure-topic"
   kms_key_arn = local.kms_key_arn })
 }
 
 resource "aws_iam_role_policy_attachment" "role_policy_attachment" {
-  role       = aws_iam_role.role.name
-  policy_arn = aws_iam_policy.role_policy.arn
+  role       = aws_iam_role.job_role.name
+  policy_arn = aws_iam_policy.job_role_policy.arn
 }
 
 resource "aws_lakeformation_resource" "data_location" {
   arn      = aws_s3_bucket.bucket.arn
-  role_arn = aws_iam_role.role.arn
+  role_arn = aws_iam_role.job_role.arn
 }
 
 resource "aws_glue_catalog_database" "glue_database" {
@@ -73,7 +74,7 @@ resource "aws_glue_catalog_database" "glue_database" {
 }
 
 resource "aws_lakeformation_permissions" "database_permissions" {
-  principal   = aws_iam_role.role.arn
+  principal   = aws_iam_role.job_role.arn
   permissions = ["CREATE_TABLE", "DESCRIBE"]
   database {
     name = aws_glue_catalog_database.glue_database.name
@@ -81,7 +82,7 @@ resource "aws_lakeformation_permissions" "database_permissions" {
 }
 
 resource "aws_lakeformation_permissions" "tables_permissions" {
-  principal   = aws_iam_role.role.arn
+  principal   = aws_iam_role.job_role.arn
   permissions = ["ALL"]
   table {
     database_name = aws_glue_catalog_database.glue_database.name
@@ -159,7 +160,7 @@ resource "aws_s3_object" "glue_job_gzip_s3_and_json" {
 resource "aws_glue_job" "glue_job" {
   name                            = local.script_name
   description                     = "Part 1 of SAP CDP. Strips the outer array from the JSON and uploads it to the stg-dlk-sbx-ds-11-raw bucket."
-  role_arn                        = aws_iam_role.role.arn
+  role_arn                        = aws_iam_role.job_role.arn
   timeout                         = 15
   max_capacity                    = 0.0625
   command {
@@ -191,6 +192,28 @@ resource "aws_glue_job" "glue_job" {
     Author                        = "davide.moraschi@toptal.com"
     # ManagedBy                   = "Terraform"
     Project                       = "stg-dlk"
+  }
+}
+
+# Workflow may not be the best approach for running the same job multiple times with parameters,
+# but Step Funcions are a bad beast to debug. Eventually it is better to use a loop inside the Glue Job
+# and pass the event types in an array
+ 
+resource "aws_glue_workflow" "pipeline" {
+  name = "ds${var.datasource_number}_pipeline"
+  max_concurrent_runs = 1
+}
+
+resource "aws_glue_trigger" "pipeline_trigger" {
+  name                  = "ds${var.datasource_number}_pipeline_schedule"
+  schedule              = "cron(0 4 ? * MON-FRI *)"  #cron(Minutes Hours Day-of-month Month Day-of-week Year)
+  type                  = "SCHEDULED"
+  workflow_name         = aws_glue_workflow.pipeline.name
+  actions {
+    job_name            = aws_glue_job.glue_job.name
+    timeout             = 15  
+    arguments           = {
+        "--EVENT_TYPES" = "[\"PAGE_VIEW\",\"BIOMATERIAL_STATE_UPDATE\",\"BIOMATERIAL_MILESTONE_UPDATE\"]"}
   }
 }
 

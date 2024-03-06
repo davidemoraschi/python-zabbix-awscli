@@ -9,6 +9,7 @@
 
 # Import necessary modules
 import json
+import sys
 import time
 import boto3
 from tabulate import tabulate
@@ -73,18 +74,22 @@ def main() -> None:
             if not json_file.key.endswith('/'):  # Check if the file is not a folder
                 # Gets the event type from the file name
                 event_type = json_file.key.split(AWS_FOLDER)[1].split('/')[1].split('.')[1]
-                if event_type in EVENT_TYPES: 
+                if event_type in EVENT_TYPES:
                     # Reads the file
                     s3_file = s3_client.get_object(Bucket=AWS_BUCKET, Key=json_file.key)
                     json_payload = s3_file['Body'].read().decode('utf-8')
 
+                    # Log file upload
+                    s3_filename: str = json_file.key.split(AWS_FOLDER)[1].split('/')[1]
+                    log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
+                        job_run_id=str(JOB_RUN_ID), str_message=f'Uploading file: {s3_filename}')
+
                     # Uploads to S3 raw bucket/folder
-                    s3_filename = json_file.key.split(AWS_FOLDER)[1].split('/')[1]
-                    upload_json_gz(s3client=s3_client,bucket=S3_DESTINATION_BUCKET,
-                                   key=S3_DESTINATION_PATH + event_type + '/{0}.gz'.format(s3_filename),obj=json_payload)
+                    upload_json_gz(s3client=s3_client, bucket=S3_DESTINATION_BUCKET,
+                                   key=S3_DESTINATION_PATH + event_type + '/{0}.gz'.format(s3_filename), obj=json_payload)
 
                     # Moves it from the ext folder to the processed one
-                    move_to_processed_folder(s3_client=s3_client, from_file_key=json_file,to_file_key=s3_filename)
+                    move_to_processed_folder(s3_client=s3_client, from_file_key=json_file, to_file_key=s3_filename)
 
     except Exception as exc:
         # Log error
@@ -100,8 +105,11 @@ def main() -> None:
             job_run_id=str(JOB_RUN_ID), str_message='end-job')
 
         # Reraise exception
+        # sys.exit(1)
         raise
+
 
 # Run main function if script is run directly
 if __name__ == "__main__":
     main()
+    # sys.exit(0)

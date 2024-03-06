@@ -115,13 +115,13 @@ def main() -> None:
 
         # Log start of job
         log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
-            job_run_id=JOB_RUN_ID, str_message='start-job')
+            job_run_id=str(JOB_RUN_ID), str_message='start-job')
 
         # Process each report ID
         for report_id in REPORT_IDS:
             # Log current report ID
             log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
-                job_run_id=JOB_RUN_ID, str_message=f'Running report_id:{report_id}')
+                job_run_id=str(JOB_RUN_ID), str_message=f'Running report_id:{report_id}')
 
             # Run report and create CSV
             execution_id: str = create_export_report_csv(report_id=report_id)
@@ -144,7 +144,7 @@ def main() -> None:
 
                 # Log file upload
                 log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
-                    job_run_id=JOB_RUN_ID, str_message=f'Uploading file: {s3_filename}')
+                    job_run_id=str(JOB_RUN_ID), str_message=f'Uploading file: {s3_filename}')
 
                 # Upload file to S3
                 upload_json_gz(s3client=s3client, bucket=S3_BUCKET,
@@ -152,20 +152,20 @@ def main() -> None:
 
         # Log end of job
         log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
-            job_run_id=JOB_RUN_ID, str_message='end-job')
+            job_run_id=str(JOB_RUN_ID), str_message='end-job')
 
     except Exception as exc:
         # Log error
         log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
-            job_run_id=JOB_RUN_ID, str_message=f'An error occurred:{str(exc)}')
+            job_run_id=str(JOB_RUN_ID), str_message=f'An error occurred:{str(exc)}')
 
         # Send SNS notification of error
         send_sns(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
-                 job_run_id=JOB_RUN_ID, exc=exc)
+                 job_run_id=str(JOB_RUN_ID), exc=exc)
 
         # Log end of job
         log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
-            job_run_id=JOB_RUN_ID, str_message='end-job')
+            job_run_id=str(JOB_RUN_ID), str_message='end-job')
 
         # Reraise exception
         raise

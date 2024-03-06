@@ -199,14 +199,17 @@ resource "aws_glue_job" "glue_job" {
   }
 }
 
-# Workflow may not be the best approach for running multiple jobs with parameters,
-# but Step Funcions are a bad beast to debug.
+# Workflow may not be the best approach for running the same job multiple times with parameters,
+# but Step Funcions are a bad beast to debug. Eventually it is better to use a loop inside the Glue Job
+# and pass the report ids in an array
+
 resource "aws_glue_workflow" "pipeline" {
   name = "ds${var.datasource_number}_pipeline"
+  max_concurrent_runs = 1
 }
 
 resource "aws_glue_trigger" "pipeline_trigger" {
-  name                  = "ds6_pipeline_schedule"
+  name                  = "ds${var.datasource_number}_pipeline_schedule"
   schedule              = "cron(0 3 ? * MON-FRI *)"  #cron(Minutes Hours Day-of-month Month Day-of-week Year)
   type                  = "SCHEDULED"
   workflow_name         = aws_glue_workflow.pipeline.name

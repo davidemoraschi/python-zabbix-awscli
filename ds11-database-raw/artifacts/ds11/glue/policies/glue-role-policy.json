@@ -60,6 +60,11 @@
 			],
 			"Effect": "Allow",
 			"Resource": "${kms_key_arn}"
+		},
+		{
+			"Effect": "Allow",
+			"Action": "sns:Publish",
+			"Resource": "arn:aws:sns:${region}:${account_id}:${failure_topic_name}"
 		}
 	],
 	"Version": "2012-10-17"
