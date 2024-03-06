@@ -313,5 +313,4 @@ resource "aws_lakeformation_permissions" "refined_tables_permissions" {
     database_name = aws_glue_catalog_database.refined_glue_database.name
     wildcard      = true
   }
-
 }

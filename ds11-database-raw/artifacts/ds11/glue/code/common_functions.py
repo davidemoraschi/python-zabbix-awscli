@@ -120,21 +120,21 @@ def process_arguments(options) -> Dict[str, str]:
     return args
 
 
-def execute_s3_sql_files_athena(logger, environment):
+def execute_s3_sql_files_athena(environment):
     '''Reads files from S3'''
 
-    if environment == 'vscode':
-        vscode_session = boto3.Session(
-            region_name=AWS_REGION, profile_name=AWS_PROFILE)
-        s3_client = vscode_session.client(service_name='s3')
-    else:
-        glue_session = boto3.Session()
-        s3_client = glue_session.client('s3')
+    # if environment == 'vscode':
+    #     vscode_session = boto3.Session(
+    #         region_name=AWS_REGION, profile_name=AWS_PROFILE)
+    #     s3_client = vscode_session.client(service_name='s3')
+    # else:
+    glue_session = boto3.Session()
+    s3_client = glue_session.client('s3')
 
     s3 = boto3.resource('s3')
     s3_bucket = s3.Bucket(AWS_BUCKET)
-    logger.info('AWS_BUCKET: \n%s', AWS_BUCKET)
-    logger.info('AWS_FOLDER: \n%s', AWS_FOLDER)
+    # logger.info('AWS_BUCKET: \n%s', AWS_BUCKET)
+    # logger.info('AWS_FOLDER: \n%s', AWS_FOLDER)
     for sqlfile in s3_bucket.objects.filter(Prefix=AWS_FOLDER):
         if sqlfile.key.endswith('sql'):
             s3_file = s3_client.get_object(Bucket=AWS_BUCKET, Key=sqlfile.key)
@@ -142,12 +142,12 @@ def execute_s3_sql_files_athena(logger, environment):
 
             # --if environment == 'sandbox':
             time.sleep(LOG_DELAY)
-            logger.info('Running Query: \n%s', querystring)
+            # logger.info('Running Query: \n%s', querystring)
 
             df = wr.athena.read_sql_query(sql=querystring, database=AWS_ATHENA_DATABASE, ctas_approach=False, s3_output=AWS_ATHENA_OUPUT)
-            logger.info(f'Filename: {sqlfile.key:90} - Returned rows: {df.shape[0]:4}')
-            if df.shape[0] > 0:
-                logger.info('\n' + tabulate(df, headers=df.keys(), tablefmt='psql', showindex=False))
+            # logger.info(f'Filename: {sqlfile.key:90} - Returned rows: {df.shape[0]:4}')
+            # if df.shape[0] > 0:
+                # logger.info('\n' + tabulate(df, headers=df.keys(), tablefmt='psql', showindex=False))
 
 
 def log_environment():

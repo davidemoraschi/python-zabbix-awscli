@@ -91,6 +91,10 @@ def main() -> None:
                     # Moves it from the ext folder to the processed one
                     move_to_processed_folder(s3_client=s3_client, from_file_key=json_file, to_file_key=s3_filename)
 
+        # Log end of job
+        log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
+            job_run_id=str(JOB_RUN_ID), str_message='end-job')
+
     except Exception as exc:
         # Log error
         log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
