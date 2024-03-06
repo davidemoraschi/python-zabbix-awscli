@@ -1,0 +1,54 @@
+{
+    "Comment": "A Hello World example of the Amazon States Language using Pass states",
+    "StartAt": "get_report_ids",
+    "States": {
+        "get_report_ids": {
+            "Type": "Task",
+            "Parameters": {
+                "Names": [
+                    "/stg/dlk/sbx/docebo/ds6/report_ids"
+                ],
+                "WithDecryption": true
+            },
+            "Resource": "arn:aws:states:::aws-sdk:ssm:getParameters",
+            "ResultPath": "$.report_ids_result",
+            "Next": "generate_array"
+        },
+        "generate_array": {
+            "Type": "Pass",
+            "Parameters": {
+                "report_ids_array.$": "States.StringToJson($.report_ids_result.Parameters[0].Value)"
+            },
+            "ResultPath": "$.generated_array",
+            "Next": "map_to_invoke_ds6_glue_job"
+        },
+        "map_to_invoke_ds6_glue_job": {
+            "Type": "Map",
+            "InputPath": "$",
+            "ItemsPath": "$.generated_array.report_ids_array.report_ids",
+            "ItemSelector": {
+                "report_id.$": "$$.Map.Item.Value",
+                "startTime.$": "$$.Execution.StartTime"
+            },
+            "Iterator": {
+                "StartAt": "run_ingestion",
+                "States": {
+                    "run_ingestion": {
+                        "Type": "Task",
+                        "Resource": "arn:aws:states:::glue:startJobRun.sync",
+                        "End": true,
+                        "Parameters": {
+                            "JobName": "stg-dlk-sbx-ds6-job-source-to-raw-new-report",
+                            "Arguments": {
+                                "--report_id.$": "$.report_id",
+                                "--startTime.$": "$.startTime"
+                            }
+                        }
+                    }
+                }
+            },
+            "ResultPath": "$.map_result",
+            "End": true
+        }
+    }
+}

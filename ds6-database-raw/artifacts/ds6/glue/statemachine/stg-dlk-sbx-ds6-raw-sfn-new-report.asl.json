@@ -1,0 +1,40 @@
+{
+    "Comment": "A state machine that runs the same job multiple times with a report ID as a parameter.",
+    "StartAt": "GenerateReportIds",
+    "States": {
+        "GenerateReportIds": {
+            "Type": "Pass",
+            "Result": {
+                "reportIds": [
+                    "10e865fe-75d1-49a5-bec4-b0db905023e4"
+                ]
+            },
+            "Next": "MapState"
+        },
+        "MapState": {
+            "Type": "Map",
+            "ItemsPath": "$.reportIds",
+            "Parameters": {
+                "reportId.$": "$$.Map.Item.Value"
+            },
+            "MaxConcurrency": 1,
+            "Iterator": {
+                "StartAt": "RunJob",
+                "States": {
+                    "RunJob": {
+                        "Type": "Task",
+                        "Resource": "arn:aws:states:::glue:startJobRun.sync",
+                        "Parameters": {
+                            "JobName": "${jobname}",
+                            "Arguments": {
+                                "--reportId.$": "$.reportId"
+                            }
+                        },
+                        "End": true
+                    }
+                }
+            },
+            "End": true
+        }
+    }
+}
