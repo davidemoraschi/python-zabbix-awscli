@@ -8,12 +8,10 @@
 '''
 
 # Import necessary modules
-import json
 import time
 from tabulate import tabulate
 from common_functions import log, log_environment, process_arguments, send_sns, execute_s3_sql_files_athena
-from config import AWS_BUCKET, AWS_FOLDER, S3_DESTINATION_BUCKET, S3_DESTINATION_PATH, S3_PROCESSED_FOLDER
-from typing import Dict, List
+from typing import Dict
 
 # Process command line arguments
 args: Dict[str, str] = process_arguments(options=['WORKFLOW_NAME', 'WORKFLOW_RUN_ID'])
@@ -24,7 +22,7 @@ print(tabulate(tabular_data=args.items(), headers=['args.keys()', 'args.values()
 # Parse report IDs, workflow name, EVENT_TYPES, and job name from arguments
 WORKFLOW_NAME: str = args['WORKFLOW_NAME']
 WORKFLOW_RUN_ID: str = args['WORKFLOW_RUN_ID']
-JOB_NAME: str = args['JOB_NAME'] if 'JOB_NAME' in args else 'stg-dlk-sbx-ds11-job-source-to-raw'
+JOB_NAME: str = args['JOB_NAME'] if 'JOB_NAME' in args else 'stg-dlk-sbx-ds11-job-raw-to-refined'
 JOB_RUN_ID: int = int(time.time())
 
 
@@ -39,7 +37,8 @@ def main():
         log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
             job_run_id=str(JOB_RUN_ID), str_message='start-job')
         
-        execute_s3_sql_files_athena()
+        execute_s3_sql_files_athena(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
+            job_run_id=str(JOB_RUN_ID))
 
         # Log end of job
         log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,

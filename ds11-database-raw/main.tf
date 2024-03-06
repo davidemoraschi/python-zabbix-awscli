@@ -21,7 +21,8 @@ locals {
   artifacts_bucket_name    = "stg-dlk-sbx-code-artifacts"
   database_name            = "stg-dlk-sbx-ds${var.datasource_number}-raw-db"
   role_name                = "stg-dlk-sbx-ds${var.datasource_number}-source-to-raw-glue-job-role"
-  script_name              = "stg-dlk-sbx-ds${var.datasource_number}-job-source-to-raw"
+  raw_script_name          = "stg-dlk-sbx-ds${var.datasource_number}-job-source-to-raw"
+  refined_script_name      = "stg-dlk-sbx-ds${var.datasource_number}-job-raw-to-refined"
   kms_key_arn              = "arn:aws:kms:eu-west-1:816247855850:key/396cd8ff-4b3d-4b17-9df4-9449185fdd2e"
 }
 
@@ -179,11 +180,11 @@ resource "aws_glue_catalog_table" "biomaterial_milestone_updates_jsonl_gzip" {
   }
 }
 
-resource "aws_s3_object" "glue_job_script" {
+resource "aws_s3_object" "raw_glue_job_script" {
   bucket      = local.artifacts_bucket_name
-  key         = "artifacts/glue_job_${local.datasource}/code/${local.script_name}.py"
-  source      = "${path.module}/artifacts/ds11/glue/code/${local.script_name}.py"
-  source_hash = filemd5("${path.module}/artifacts/ds11/glue/code/${local.script_name}.py")
+  key         = "artifacts/glue_job_${local.datasource}/code/${local.raw_script_name}.py"
+  source      = "${path.module}/artifacts/ds11/glue/code/${local.raw_script_name}.py"
+  source_hash = filemd5("${path.module}/artifacts/ds11/glue/code/${local.raw_script_name}.py")
 }
 
 resource "aws_s3_object" "glue_job_config" {
@@ -210,14 +211,14 @@ resource "aws_s3_object" "glue_job_gzip_s3_and_json" {
 }
 
 resource "aws_glue_job" "glue_job" {
-  name                            = local.script_name
+  name                            = local.raw_script_name
   description                     = "Part 1 of SAP CDP. Strips the outer array from the JSON and uploads it to the stg-dlk-sbx-ds-11-raw bucket."
   role_arn                        = aws_iam_role.job_role.arn
   timeout                         = 15
   max_capacity                    = 0.0625
   command {
     name                          = "pythonshell"
-    script_location               = "s3://${local.artifacts_bucket_name}/artifacts/glue_job_${local.datasource}/code/${local.script_name}.py"
+    script_location               = "s3://${local.artifacts_bucket_name}/artifacts/glue_job_${local.datasource}/code/${local.raw_script_name}.py"
     python_version                = 3.9
   }
   security_configuration          = "dlk-glue-sec-config"
@@ -313,4 +314,18 @@ resource "aws_lakeformation_permissions" "refined_tables_permissions" {
     database_name = aws_glue_catalog_database.refined_glue_database.name
     wildcard      = true
   }
+}
+
+resource "aws_s3_object" "refiend_glue_job_script" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/code/${local.refined_script_name}.py"
+  source      = "${path.module}/artifacts/ds11/glue/code/${local.refined_script_name}.py"
+  source_hash = filemd5("${path.module}/artifacts/ds11/glue/code/${local.refined_script_name}.py")
+}
+
+resource "aws_s3_object" "sql_job_script_001" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/sql/001. SELECT TABLE page_views.sql"
+  source      = "${path.module}/artifacts/ds11/glue/sql/001. SELECT TABLE page_views.sql"
+  source_hash = filemd5("${path.module}/artifacts/ds11/glue/sql/001. SELECT TABLE page_views.sql")
 }
