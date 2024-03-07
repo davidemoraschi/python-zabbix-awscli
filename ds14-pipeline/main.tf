@@ -272,83 +272,83 @@ resource "aws_s3_object" "glue_job_gzip_s3_and_json" {
   source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/code/gzip_s3_and_json_py3.py")
 }
 
-# resource "aws_glue_job" "glue_job" {
-#   name                            = local.raw_script_name
-#   description                     = "Part 1 of SAP CDP. Strips the outer array from the JSON and uploads it to the stg-dlk-sbx-ds-11-raw bucket."
-#   role_arn                        = aws_iam_role.job_role.arn
-#   timeout                         = 15
-#   max_capacity                    = 0.0625
-#   command {
-#     name                          = "pythonshell"
-#     script_location               = "s3://${local.artifacts_bucket_name}/artifacts/glue_job_${local.datasource}/code/${local.raw_script_name}.py"
-#     python_version                = 3.9
-#   }
-#   security_configuration          = "dlk-glue-sec-config"
-#   default_arguments = {
-#     "library-set"                 = "analytics"
-#     "--additional-python-modules" = "paramiko,jq,tabulate"
-#     # "--bucket_name"             = "${var.raw_bucket_name}"
-#     # "--enable-continuous-cloudwatch-log"  = false
-#     "--enable-glue-datacatalog"   = true
-#     # "--enable-metrics"          = false
-#     # "--enable-spark-ui"         = false
-#     # "--enable-job-insights"     = false
-#     "--environment"               = "sbx"
-#     "--extra-files"               = "s3://stg-dlk-sbx-code-artifacts/artifacts/glue_job_${local.datasource}/code/config.py,s3://stg-dlk-sbx-code-artifacts/artifacts/glue_job_${local.datasource}/code/common_functions.py,s3://stg-dlk-sbx-code-artifacts/artifacts/glue_job_${local.datasource}/code/gzip_s3_and_json_py3.py"
-#     # "--region"                  = "eu-west-1"
-#     "--job-bookmark-option"       = "job-bookmark-disable"
-#     "--job-language"              = "python"
-#     "--WORKFLOW_NAME"             = "no_workflow"
-#     "--WORKFLOW_RUN_ID"           = "0"
-#     "--EVENT_TYPES"               = "[\"PAGE_VIEW\",\"BIOMATERIAL_STATE_UPDATE\",\"BIOMATERIAL_MILESTONE_UPDATE\"]"
-#     "--TempDir"                   = "s3://stg-dlk-sbx-glue-job-temporary-files/temporary/"
-#   }
-#   tags = {
-#     Author                        = "davide.moraschi@toptal.com"
-#     # ManagedBy                   = "Terraform"
-#     Project                       = "stg-dlk"
-#   }
-# }
+resource "aws_glue_job" "glue_job" {
+  name                            = local.raw_script_name
+  description                     = "Part 1 of SAP CDP. Strips the outer array from the JSON and uploads it to the stg-dlk-sbx-ds-11-raw bucket."
+  role_arn                        = aws_iam_role.raw_job_role.arn
+  timeout                         = 15
+  max_capacity                    = 0.0625
+  command {
+    name                          = "pythonshell"
+    script_location               = "s3://${local.artifacts_bucket_name}/artifacts/glue_job_${local.datasource}/code/${local.raw_script_name}.py"
+    python_version                = 3.9
+  }
+  security_configuration          = "dlk-glue-sec-config"
+  default_arguments = {
+    "library-set"                 = "analytics"
+    "--additional-python-modules" = "paramiko,jq,tabulate"
+    # "--bucket_name"             = "${var.raw_bucket_name}"
+    # "--enable-continuous-cloudwatch-log"  = false
+    "--enable-glue-datacatalog"   = true
+    # "--enable-metrics"          = false
+    # "--enable-spark-ui"         = false
+    # "--enable-job-insights"     = false
+    "--environment"               = "sbx"
+    "--extra-files"               = "s3://stg-dlk-sbx-code-artifacts/artifacts/glue_job_${local.datasource}/code/config.py,s3://stg-dlk-sbx-code-artifacts/artifacts/glue_job_${local.datasource}/code/common_functions.py,s3://stg-dlk-sbx-code-artifacts/artifacts/glue_job_${local.datasource}/code/gzip_s3_and_json_py3.py"
+    # "--region"                  = "eu-west-1"
+    "--job-bookmark-option"       = "job-bookmark-disable"
+    "--job-language"              = "python"
+    "--WORKFLOW_NAME"             = "no_workflow"
+    "--WORKFLOW_RUN_ID"           = "0"
+    "--EVENT_TYPES"               = "[\"PAGE_VIEW\",\"BIOMATERIAL_STATE_UPDATE\",\"BIOMATERIAL_MILESTONE_UPDATE\"]"
+    "--TempDir"                   = "s3://stg-dlk-sbx-glue-job-temporary-files/temporary/"
+  }
+  tags = {
+    Author                        = "davide.moraschi@toptal.com"
+    # ManagedBy                   = "Terraform"
+    Project                       = "stg-dlk"
+  }
+}
 
-# # Workflow may not be the best approach for running the same job multiple times with parameters,
-# # but Step Funcions are a bad beast to debug. Eventually it is better to use a loop inside the Glue Job
-# # and pass the event types in an array
+# Workflow may not be the best approach for running the same job multiple times with parameters,
+# but Step Funcions are a bad beast to debug. Eventually it is better to use a loop inside the Glue Job
+# and pass the event types in an array
  
-# resource "aws_glue_workflow" "pipeline" {
-#   name = "ds${var.datasource_number}_pipeline"
-#   max_concurrent_runs = 1
-# }
+resource "aws_glue_workflow" "pipeline" {
+  name = "ds${var.datasource_number}_pipeline"
+  max_concurrent_runs = 1
+}
 
-# resource "aws_glue_trigger" "pipeline_trigger" {
-#   name                  = "ds${var.datasource_number}_pipeline_schedule"
-#   schedule              = "cron(0 4 ? * MON-FRI *)"  #cron(Minutes Hours Day-of-month Month Day-of-week Year)
-#   type                  = "SCHEDULED"
-#   workflow_name         = aws_glue_workflow.pipeline.name
-#   actions {
-#     job_name            = aws_glue_job.glue_job.name
-#     timeout             = 15  
-#     arguments           = {
-#         "--EVENT_TYPES" = "[\"PAGE_VIEW\",\"BIOMATERIAL_STATE_UPDATE\",\"BIOMATERIAL_MILESTONE_UPDATE\"]"}
-#   }
-# }
+resource "aws_glue_trigger" "pipeline_trigger" {
+  name                  = "ds${var.datasource_number}_pipeline_schedule"
+  schedule              = "cron(0 4 ? * MON-FRI *)"  #cron(Minutes Hours Day-of-month Month Day-of-week Year)
+  type                  = "SCHEDULED"
+  workflow_name         = aws_glue_workflow.pipeline.name
+  actions {
+    job_name            = aws_glue_job.glue_job.name
+    timeout             = 15  
+    arguments           = {
+        "--EVENT_TYPES" = "[\"PAGE_VIEW\",\"BIOMATERIAL_STATE_UPDATE\",\"BIOMATERIAL_MILESTONE_UPDATE\"]"}
+  }
+}
 
-# # Add a SNS topic for notifications about GLue Workflow failures
-# resource "aws_sns_topic" "failure_topic" {
-#     name = "ds${var.datasource_number}-failure-topic"
-# }
+# Add a SNS topic for notifications about GLue Workflow failures
+resource "aws_sns_topic" "failure_topic" {
+    name = "ds${var.datasource_number}-failure-topic"
+}
 
-# resource "aws_sns_topic_subscription" "failure_email" {
-#   topic_arn = aws_sns_topic.failure_topic.arn
-#   protocol  = "email"  
-#   endpoint  = "davide.moraschi@straumann.com"
-# }
+resource "aws_sns_topic_subscription" "failure_email" {
+  topic_arn = aws_sns_topic.failure_topic.arn
+  protocol  = "email"  
+  endpoint  = "davide.moraschi@straumann.com"
+}
 
-# # # Refined zone
-# # resource "aws_s3_bucket" "refined_bucket" {
-# #   bucket              = local.refined_bucket_name
-# #   force_destroy       = true
-# #   object_lock_enabled = false
-# # }
+# Refined zone
+resource "aws_s3_bucket" "refined_bucket" {
+  bucket              = local.refined_bucket_name
+  force_destroy       = true
+  object_lock_enabled = false
+}
 
 # # resource "aws_lakeformation_resource" "data_location" {
 # #   arn      = aws_s3_bucket.refined_bucket.arn
