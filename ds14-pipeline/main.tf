@@ -9,7 +9,7 @@ provider "aws" {
 
 variable "datasource_number" {
   type    = string
-  default = "11"
+  default = "14"
 }
 
 locals {
@@ -43,13 +43,13 @@ resource "aws_s3_bucket_public_access_block" "bucket_access_block" {
 resource "aws_iam_role" "job_role" {
   name               = local.role_name
   # assume_role_policy = templatefile("./trust-policy.json", { service = "glue.amazonaws.com" })
-  assume_role_policy = templatefile("${path.module}/artifacts/ds11/glue/policies/trust-policy.json", { service = "glue.amazonaws.com" })
+  assume_role_policy = templatefile("${path.module}/artifacts/ds${var.datasource_number}/glue/policies/trust-policy.json", { service = "glue.amazonaws.com" })
 }
 
 resource "aws_iam_policy" "job_role_policy" {
   name = "${local.role_name}_policy"
   # policy = templatefile("./glue-role-policy.json", {
-  policy = templatefile("${path.module}/artifacts/ds11/glue/policies/glue-role-policy.json", {  
+  policy = templatefile("${path.module}/artifacts/ds${var.datasource_number}/glue/policies/glue-role-policy.json", {  
     account_id          = data.aws_caller_identity.current.account_id
     region              = data.aws_region.current.name
     resource-arn        = aws_s3_bucket.raw_bucket.arn
@@ -183,30 +183,30 @@ resource "aws_glue_catalog_table" "biomaterial_milestone_updates_jsonl_gzip" {
 resource "aws_s3_object" "raw_glue_job_script" {
   bucket      = local.artifacts_bucket_name
   key         = "artifacts/glue_job_${local.datasource}/code/${local.raw_script_name}.py"
-  source      = "${path.module}/artifacts/ds11/glue/code/${local.raw_script_name}.py"
-  source_hash = filemd5("${path.module}/artifacts/ds11/glue/code/${local.raw_script_name}.py")
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/code/${local.raw_script_name}.py"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/code/${local.raw_script_name}.py")
 }
 
 resource "aws_s3_object" "glue_job_config" {
   bucket      = local.artifacts_bucket_name
   key         = "artifacts/glue_job_${local.datasource}/code/config.py"
-  source      = "${path.module}/artifacts/ds11/glue/code/config.py"
-  source_hash = filemd5("${path.module}/artifacts/ds11/glue/code/config.py")
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/code/config.py"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/code/config.py")
 }
 
 resource "aws_s3_object" "glue_job_common_functions" {
   bucket      = local.artifacts_bucket_name
   key         = "artifacts/glue_job_${local.datasource}/code/common_functions.py"
-  source      = "${path.module}/artifacts/ds11/glue/code/common_functions.py"
-  source_hash = filemd5("${path.module}/artifacts/ds11/glue/code/common_functions.py")
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/code/common_functions.py"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/code/common_functions.py")
   # etag               = filemd5("../common_functions.py")
 }
 
 resource "aws_s3_object" "glue_job_gzip_s3_and_json" {
   bucket      = local.artifacts_bucket_name
   key         = "artifacts/glue_job_${local.datasource}/code/gzip_s3_and_json_py3.py"
-  source      = "${path.module}/artifacts/ds11/glue/code/gzip_s3_and_json_py3.py"
-  source_hash = filemd5("${path.module}/artifacts/ds11/glue/code/gzip_s3_and_json_py3.py")
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/code/gzip_s3_and_json_py3.py"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/code/gzip_s3_and_json_py3.py")
   # etag               = filemd5("../gzip_s3_and_json_py3.py")
 }
 
@@ -319,13 +319,13 @@ resource "aws_lakeformation_permissions" "refined_tables_permissions" {
 resource "aws_s3_object" "refiend_glue_job_script" {
   bucket      = local.artifacts_bucket_name
   key         = "artifacts/glue_job_${local.datasource}/code/${local.refined_script_name}.py"
-  source      = "${path.module}/artifacts/ds11/glue/code/${local.refined_script_name}.py"
-  source_hash = filemd5("${path.module}/artifacts/ds11/glue/code/${local.refined_script_name}.py")
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/code/${local.refined_script_name}.py"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/code/${local.refined_script_name}.py")
 }
 
 resource "aws_s3_object" "sql_job_script_001" {
   bucket      = local.artifacts_bucket_name
   key         = "artifacts/glue_job_${local.datasource}/sql/001. SELECT TABLE page_views.sql"
-  source      = "${path.module}/artifacts/ds11/glue/sql/001. SELECT TABLE page_views.sql"
-  source_hash = filemd5("${path.module}/artifacts/ds11/glue/sql/001. SELECT TABLE page_views.sql")
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/001. SELECT TABLE page_views.sql"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/001. SELECT TABLE page_views.sql")
 }
