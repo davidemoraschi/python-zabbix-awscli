@@ -350,6 +350,20 @@ resource "aws_s3_bucket" "refined_bucket" {
   object_lock_enabled = false
 }
 
+resource "aws_s3_bucket_policy" "refined_bucket_policy" {
+  bucket = aws_s3_bucket.refined_bucket.id
+  policy  = templatefile("${path.module}/artifacts/ds${var.datasource_number}/glue/policies/bucket-policy.json", 
+    { resource-arn = aws_s3_bucket.refined_bucket.arn })
+}
+
+resource "aws_s3_bucket_public_access_block" "refined_bucket_access_block" {
+  bucket                  = aws_s3_bucket.refined_bucket.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
 # # resource "aws_lakeformation_resource" "data_location" {
 # #   arn      = aws_s3_bucket.refined_bucket.arn
 # #   role_arn = aws_iam_role.job_role.arn
