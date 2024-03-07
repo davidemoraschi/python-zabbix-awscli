@@ -129,10 +129,10 @@ resource "aws_iam_role_policy_attachment" "raw_job_role_policy_attachment" {
   policy_arn = aws_iam_policy.raw_job_role_policy.arn
 }
 
-# resource "aws_lakeformation_resource" "data_location" {
-#   arn      = aws_s3_bucket.raw_bucket.arn
-#   role_arn = aws_iam_role.job_role.arn
-# }
+resource "aws_lakeformation_resource" "data_location" {
+  arn      = aws_s3_bucket.raw_bucket.arn
+  role_arn = aws_iam_role.raw_job_role.arn
+}
 
 # resource "aws_glue_catalog_database" "raw_glue_database" {
 #   name         = local.database_name
