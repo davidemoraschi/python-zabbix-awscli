@@ -277,7 +277,7 @@ resource "aws_s3_object" "glue_job_gzip_s3_and_json" {
   source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/code/gzip_s3_and_json_py3.py")
 }
 
-resource "aws_glue_job" "glue_job" {
+resource "aws_glue_job" "raw_glue_job" {
   name                            = local.raw_script_name
   description                     = "Part 1 of SAP CDP. Strips the outer array from the JSON and uploads it to the stg-dlk-sbx-ds-11-raw bucket."
   role_arn                        = aws_iam_role.raw_job_role.arn
@@ -330,7 +330,7 @@ resource "aws_glue_trigger" "pipeline_trigger" {
   type                  = "SCHEDULED"
   workflow_name         = aws_glue_workflow.pipeline.name
   actions {
-    job_name            = aws_glue_job.glue_job.name
+    job_name            = aws_glue_job.raw_glue_job.name
     timeout             = 15  
     arguments           = {
         "--EVENT_TYPES" = "[\"PAGE_VIEW\",\"BIOMATERIAL_STATE_UPDATE\",\"BIOMATERIAL_MILESTONE_UPDATE\"]"}
@@ -444,4 +444,42 @@ resource "aws_s3_object" "sql_job_script_001" {
   key         = "artifacts/glue_job_${local.datasource}/sql/001. SELECT TABLE page_views.sql"
   source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/001. SELECT TABLE page_views.sql"
   source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/001. SELECT TABLE page_views.sql")
+}
+
+resource "aws_glue_job" "refined_glue_job" {
+  name                            = local.refined_script_name
+  description                     = "Part 2 of SAP CDP. Runs SQL transformations on refined database."
+  role_arn                        = aws_iam_role.refined_job_role.arn
+  timeout                         = 15
+  max_capacity                    = 0.0625
+  command {
+    name                          = "pythonshell"
+    script_location               = "s3://${local.artifacts_bucket_name}/artifacts/glue_job_${local.datasource}/code/${local.refined_script_name}.py"
+    python_version                = 3.9
+  }
+  security_configuration          = "dlk-glue-sec-config"
+  default_arguments = {
+    "library-set"                 = "analytics"
+    "--additional-python-modules" = "paramiko,jq,tabulate"
+    # "--bucket_name"             = "${var.refined_bucket_name}"
+    # "--enable-continuous-cloudwatch-log"  = false
+    "--enable-glue-datacatalog"   = true
+    # "--enable-metrics"          = false
+    # "--enable-spark-ui"         = false
+    # "--enable-job-insights"     = false
+    "--environment"               = "sbx"
+    "--extra-files"               = "s3://stg-dlk-sbx-code-artifacts/artifacts/glue_job_${local.datasource}/code/config.py,s3://stg-dlk-sbx-code-artifacts/artifacts/glue_job_${local.datasource}/code/common_functions.py,s3://stg-dlk-sbx-code-artifacts/artifacts/glue_job_${local.datasource}/code/gzip_s3_and_json_py3.py"
+    # "--region"                  = "eu-west-1"
+    "--job-bookmark-option"       = "job-bookmark-disable"
+    "--job-language"              = "python"
+    "--WORKFLOW_NAME"             = "no_workflow"
+    "--WORKFLOW_RUN_ID"           = "0"
+    # "--EVENT_TYPES"               = "[\"PAGE_VIEW\",\"BIOMATERIAL_STATE_UPDATE\",\"BIOMATERIAL_MILESTONE_UPDATE\"]"
+    "--TempDir"                   = "s3://stg-dlk-sbx-glue-job-temporary-files/temporary/"
+  }
+  tags = {
+    Author                        = "davide.moraschi@toptal.com"
+    # ManagedBy                   = "Terraform"
+    Project                       = "stg-dlk"
+  }
 }
