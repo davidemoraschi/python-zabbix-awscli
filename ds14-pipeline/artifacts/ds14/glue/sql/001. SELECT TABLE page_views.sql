@@ -1,6 +1,6 @@
 SELECT
     contactid
-    , applicationname
-    , pageurl
+    , eventtype
+    , eventattributes
 FROM
-    "stg-dlk-sbx-ds11-raw-db".page_views;
+    "stg-dlk-sbx-ds14-raw-db".page_views_jsonl_gzip;

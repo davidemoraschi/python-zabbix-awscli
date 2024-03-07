@@ -18,8 +18,10 @@
 			"Effect": "Allow",
 			"Resource": [
 				"arn:aws:glue:${region}:${account_id}:catalog",
-				"arn:aws:glue:${region}:${account_id}:database/${db_name}",
-				"arn:aws:glue:${region}:${account_id}:table/${db_name}/*"
+				"arn:aws:glue:${region}:${account_id}:database/${raw_db_name}",
+				"arn:aws:glue:${region}:${account_id}:table/${raw_db_name}/*",
+				"arn:aws:glue:${region}:${account_id}:database/${refined_db_name}",
+				"arn:aws:glue:${region}:${account_id}:table/${refined_db_name}/*"
 			]
 		},
 		{

@@ -124,7 +124,8 @@ resource "aws_iam_policy" "raw_job_role_policy" {
     region              = data.aws_region.current.name
     resource-arn        = aws_s3_bucket.raw_bucket.arn
     # ext-resource-arn  = "arn:aws:s3:::${local.ext_bucket_name}"
-    db_name             = local.raw_database_name
+    raw_db_name         = local.raw_database_name
+    refined_db_name     = local.refined_database_name
     failure_topic_name  = "ds${var.datasource_number}-failure-topic"
   kms_key_arn = local.kms_key_arn })
 }
@@ -394,7 +395,8 @@ resource "aws_iam_policy" "refined_job_role_policy" {
     region              = data.aws_region.current.name
     resource-arn        = aws_s3_bucket.refined_bucket.arn
     # ext-resource-arn  = "arn:aws:s3:::${local.ext_bucket_name}"
-    db_name             = local.refined_database_name
+    raw_db_name         = local.raw_database_name
+    refined_db_name     = local.refined_database_name
     failure_topic_name  = "ds${var.datasource_number}-failure-topic"
   kms_key_arn = local.kms_key_arn })
 }
@@ -428,6 +430,23 @@ resource "aws_lakeformation_permissions" "refined_tables_permissions" {
   permissions = ["ALL"]
   table {
     database_name = aws_glue_catalog_database.refined_glue_database.name
+    wildcard      = true
+  }
+}
+
+resource "aws_lakeformation_permissions" "raw_refined_database_permissions" {
+  principal   = aws_iam_role.refined_job_role.arn
+  permissions = ["CREATE_TABLE", "DESCRIBE"]
+  database {
+    name = aws_glue_catalog_database.raw_glue_database.name
+  }
+}
+
+resource "aws_lakeformation_permissions" "raw_refined_tables_permissions" {
+  principal   = aws_iam_role.refined_job_role.arn
+  permissions = ["ALL"]
+  table {
+    database_name = aws_glue_catalog_database.raw_glue_database.name
     wildcard      = true
   }
 }
