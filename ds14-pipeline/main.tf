@@ -19,7 +19,7 @@ locals {
   refined_bucket_name       = "stg-dlk-sbx-ds-${var.datasource_number}-refined"
   datasource_bucket_folder  = "events_feed/events_jsonl_gzip/"
   artifacts_bucket_name     = "stg-dlk-sbx-code-artifacts"
-  database_name             = "stg-dlk-sbx-ds${var.datasource_number}-raw-db"
+  raw_database_name         = "stg-dlk-sbx-ds${var.datasource_number}-raw-db"
   raw_role_name             = "stg-dlk-sbx-ds${var.datasource_number}-source-to-raw-glue-job-role"
   raw_script_name           = "stg-dlk-sbx-ds${var.datasource_number}-job-source-to-raw"
   refined_script_name       = "stg-dlk-sbx-ds${var.datasource_number}-job-raw-to-refined"
@@ -112,23 +112,22 @@ resource "aws_iam_role" "raw_job_role" {
     { service = "glue.amazonaws.com" })
 }
 
-# resource "aws_iam_policy" "job_role_policy" {
-#   name = "${local.role_name}_policy"
-#   # policy = templatefile("./glue-role-policy.json", {
-#   policy = templatefile("${path.module}/artifacts/ds${var.datasource_number}/glue/policies/glue-role-policy.json", {  
-#     account_id          = data.aws_caller_identity.current.account_id
-#     region              = data.aws_region.current.name
-#     resource-arn        = aws_s3_bucket.raw_bucket.arn
-#     ext-resource-arn    = "arn:aws:s3:::${local.ext_bucket_name}"
-#     db_name             = local.database_name
-#     failure_topic_name  = "ds${var.datasource_number}-failure-topic"
-#   kms_key_arn = local.kms_key_arn })
-# }
+resource "aws_iam_policy" "raw_job_role_policy" {
+  name = "${local.raw_role_name}_policy"
+  policy = templatefile("${path.module}/artifacts/ds${var.datasource_number}/glue/policies/glue-role-policy.json", {  
+    account_id          = data.aws_caller_identity.current.account_id
+    region              = data.aws_region.current.name
+    resource-arn        = aws_s3_bucket.raw_bucket.arn
+    # ext-resource-arn  = "arn:aws:s3:::${local.ext_bucket_name}"
+    db_name             = local.raw_database_name
+    failure_topic_name  = "ds${var.datasource_number}-failure-topic"
+  kms_key_arn = local.kms_key_arn })
+}
 
-# resource "aws_iam_role_policy_attachment" "role_policy_attachment" {
-#   role       = aws_iam_role.job_role.name
-#   policy_arn = aws_iam_policy.job_role_policy.arn
-# }
+resource "aws_iam_role_policy_attachment" "raw_job_role_policy_attachment" {
+  role       = aws_iam_role.raw_job_role.name
+  policy_arn = aws_iam_policy.raw_job_role_policy.arn
+}
 
 # resource "aws_lakeformation_resource" "data_location" {
 #   arn      = aws_s3_bucket.raw_bucket.arn

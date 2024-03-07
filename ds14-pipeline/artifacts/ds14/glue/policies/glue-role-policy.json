@@ -45,8 +45,6 @@
 			"Resource": [
 				"${resource-arn}",
 				"${resource-arn}/*",
-				"${ext-resource-arn}",
-				"${ext-resource-arn}/*",
 				"arn:aws:s3:::stg-dlk-sbx-code-artifacts",
 				"arn:aws:s3:::stg-dlk-sbx-code-artifacts/*",
 				"arn:aws:s3:::stg-dlk-*-athena-query-results",
