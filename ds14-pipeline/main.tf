@@ -22,12 +22,17 @@ locals {
   raw_database_name         = "stg-dlk-sbx-ds${var.datasource_number}-raw-db"
   raw_role_name             = "stg-dlk-sbx-ds${var.datasource_number}-source-to-raw-glue-job-role"
   raw_script_name           = "stg-dlk-sbx-ds${var.datasource_number}-job-source-to-raw"
+  refined_database_name     = "stg-dlk-sbx-ds${var.datasource_number}-refined-db"
+  refined_role_name         = "stg-dlk-sbx-ds${var.datasource_number}-raw-to-refined-glue-job-role"
   refined_script_name       = "stg-dlk-sbx-ds${var.datasource_number}-job-raw-to-refined"
   kms_key_arn               = "arn:aws:kms:eu-west-1:816247855850:key/396cd8ff-4b3d-4b17-9df4-9449185fdd2e"
   ext_user_name             = "ds${var.datasource_number}_sap_cdp_ext_user"
   # ext_role_name           = "ds${var.datasource_number}_sap_cdp_ext_role"
 }
 
+# ===========================================================================================================================
+# Raw zone
+# ===========================================================================================================================
 resource "aws_s3_bucket" "raw_bucket" {
   bucket              = local.raw_bucket_name
   force_destroy       = true
@@ -129,7 +134,7 @@ resource "aws_iam_role_policy_attachment" "raw_job_role_policy_attachment" {
   policy_arn = aws_iam_policy.raw_job_role_policy.arn
 }
 
-resource "aws_lakeformation_resource" "data_location" {
+resource "aws_lakeformation_resource" "raw_data_location" {
   arn      = aws_s3_bucket.raw_bucket.arn
   role_arn = aws_iam_role.raw_job_role.arn
 }
@@ -343,7 +348,9 @@ resource "aws_sns_topic_subscription" "failure_email" {
   endpoint  = "davide.moraschi@straumann.com"
 }
 
+# ===========================================================================================================================
 # Refined zone
+# ===========================================================================================================================
 resource "aws_s3_bucket" "refined_bucket" {
   bucket              = local.refined_bucket_name
   force_destroy       = true
@@ -364,44 +371,77 @@ resource "aws_s3_bucket_public_access_block" "refined_bucket_access_block" {
   restrict_public_buckets = true
 }
 
-# # resource "aws_lakeformation_resource" "data_location" {
-# #   arn      = aws_s3_bucket.refined_bucket.arn
-# #   role_arn = aws_iam_role.job_role.arn
-# # }
+resource "aws_s3_bucket_server_side_encryption_configuration" "refined_bucket_encryption" {
+  bucket = aws_s3_bucket.refined_bucket.id  
+  rule {
+    bucket_key_enabled = true
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+    }
+  }
+}
 
-# resource "aws_glue_catalog_database" "refined_glue_database" {
-#   name         = "stg-dlk-sbx-ds${var.datasource_number}-refined-db"
-#   description  = "Glue catalog db for ${local.datasource} refined zone."
-#   location_uri = "s3://${local.refined_bucket_name}"
-# }
+resource "aws_iam_role" "refined_job_role" {
+  name               = local.refined_role_name
+  assume_role_policy = templatefile("${path.module}/artifacts/ds${var.datasource_number}/glue/policies/trust-policy.json", 
+    { service = "glue.amazonaws.com" })
+}
 
-# resource "aws_lakeformation_permissions" "refined_database_permissions" {
-#   principal   = aws_iam_role.job_role.arn
-#   permissions = ["CREATE_TABLE", "DESCRIBE"]
-#   database {
-#     name = aws_glue_catalog_database.refined_glue_database.name
-#   }
-# }
+resource "aws_iam_policy" "refined_job_role_policy" {
+  name = "${local.refined_role_name}_policy"
+  policy = templatefile("${path.module}/artifacts/ds${var.datasource_number}/glue/policies/glue-role-policy.json", {  
+    account_id          = data.aws_caller_identity.current.account_id
+    region              = data.aws_region.current.name
+    resource-arn        = aws_s3_bucket.refined_bucket.arn
+    # ext-resource-arn  = "arn:aws:s3:::${local.ext_bucket_name}"
+    db_name             = local.refined_database_name
+    failure_topic_name  = "ds${var.datasource_number}-failure-topic"
+  kms_key_arn = local.kms_key_arn })
+}
 
-# resource "aws_lakeformation_permissions" "refined_tables_permissions" {
-#   principal   = aws_iam_role.job_role.arn
-#   permissions = ["ALL"]
-#   table {
-#     database_name = aws_glue_catalog_database.refined_glue_database.name
-#     wildcard      = true
-#   }
-# }
+resource "aws_iam_role_policy_attachment" "refined_job_role_policy_attachment" {
+  role       = aws_iam_role.refined_job_role.name
+  policy_arn = aws_iam_policy.refined_job_role_policy.arn
+}
 
-# resource "aws_s3_object" "refiend_glue_job_script" {
-#   bucket      = local.artifacts_bucket_name
-#   key         = "artifacts/glue_job_${local.datasource}/code/${local.refined_script_name}.py"
-#   source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/code/${local.refined_script_name}.py"
-#   source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/code/${local.refined_script_name}.py")
-# }
+resource "aws_lakeformation_resource" "refined_data_location" {
+  arn      = aws_s3_bucket.refined_bucket.arn
+  role_arn = aws_iam_role.refined_job_role.arn
+}
 
-# resource "aws_s3_object" "sql_job_script_001" {
-#   bucket      = local.artifacts_bucket_name
-#   key         = "artifacts/glue_job_${local.datasource}/sql/001. SELECT TABLE page_views.sql"
-#   source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/001. SELECT TABLE page_views.sql"
-#   source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/001. SELECT TABLE page_views.sql")
-# }
+resource "aws_glue_catalog_database" "refined_glue_database" {
+  name         = local.refined_database_name
+  description  = "Glue catalog db for ${local.datasource} refined zone."
+  location_uri = "s3://${local.refined_bucket_name}"
+}
+
+resource "aws_lakeformation_permissions" "refined_database_permissions" {
+  principal   = aws_iam_role.refined_job_role.arn
+  permissions = ["CREATE_TABLE", "DESCRIBE"]
+  database {
+    name = aws_glue_catalog_database.refined_glue_database.name
+  }
+}
+
+resource "aws_lakeformation_permissions" "refined_tables_permissions" {
+  principal   = aws_iam_role.refined_job_role.arn
+  permissions = ["ALL"]
+  table {
+    database_name = aws_glue_catalog_database.refined_glue_database.name
+    wildcard      = true
+  }
+}
+
+resource "aws_s3_object" "refiend_glue_job_script" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/code/${local.refined_script_name}.py"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/code/${local.refined_script_name}.py"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/code/${local.refined_script_name}.py")
+}
+
+resource "aws_s3_object" "sql_job_script_001" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/sql/001. SELECT TABLE page_views.sql"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/001. SELECT TABLE page_views.sql"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/001. SELECT TABLE page_views.sql")
+}
