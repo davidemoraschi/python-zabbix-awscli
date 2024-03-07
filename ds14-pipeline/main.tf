@@ -24,7 +24,7 @@ locals {
   raw_script_name           = "stg-dlk-sbx-ds${var.datasource_number}-job-source-to-raw"
   refined_script_name       = "stg-dlk-sbx-ds${var.datasource_number}-job-raw-to-refined"
   kms_key_arn               = "arn:aws:kms:eu-west-1:816247855850:key/396cd8ff-4b3d-4b17-9df4-9449185fdd2e"
-  ext_user_name             = "ds${var.datasource_number}_sap_cdp_ext_user"
+  # ext_user_name           = "ds${var.datasource_number}_sap_cdp_ext_user"
   ext_role_name             = "ds${var.datasource_number}_sap_cdp_ext_role"
 }
 
@@ -90,6 +90,20 @@ resource "aws_s3_bucket_lifecycle_configuration" "raw_bucket_lifecycle" {
 #     }
 #   }
 # }
+
+resource "aws_iam_user" "ext_user" {
+  name        = local.ext_role_name
+}
+
+resource "aws_iam_policy" "ext_user_policy" {
+  name        = "${local.ext_role_name}_policy"
+  policy  = templatefile("${path.module}/artifacts/ds${var.datasource_number}/glue/policies/user-policy.json", { resource-arn = aws_s3_bucket.bucket.arn })
+}
+
+resource "aws_iam_user_policy_attachment" "ext_user_policy_attachment" {
+  user       = aws_iam_user.ext_user.name
+  policy_arn = aws_iam_policy.ext_user_policy.arn
+}
 
 # resource "aws_iam_role" "job_role" {
 #   name               = local.role_name
