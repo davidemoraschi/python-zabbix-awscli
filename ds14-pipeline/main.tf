@@ -13,17 +13,19 @@ variable "datasource_number" {
 }
 
 locals {
-  datasource               = "ds${var.datasource_number}"
-  ext_bucket_name          = "stg-dlk-sbx-ds-${var.datasource_number}-ext"
-  raw_bucket_name          = "stg-dlk-sbx-ds-${var.datasource_number}-raw"
-  refined_bucket_name      = "stg-dlk-sbx-ds-${var.datasource_number}-refined"
-  datasource_bucket_folder = "events_feed/events_jsonl_gzip/"
-  artifacts_bucket_name    = "stg-dlk-sbx-code-artifacts"
-  database_name            = "stg-dlk-sbx-ds${var.datasource_number}-raw-db"
-  role_name                = "stg-dlk-sbx-ds${var.datasource_number}-source-to-raw-glue-job-role"
-  raw_script_name          = "stg-dlk-sbx-ds${var.datasource_number}-job-source-to-raw"
-  refined_script_name      = "stg-dlk-sbx-ds${var.datasource_number}-job-raw-to-refined"
-  kms_key_arn              = "arn:aws:kms:eu-west-1:816247855850:key/396cd8ff-4b3d-4b17-9df4-9449185fdd2e"
+  datasource                = "ds${var.datasource_number}"
+  ext_bucket_name           = "stg-dlk-sbx-ds-${var.datasource_number}-ext"
+  raw_bucket_name           = "stg-dlk-sbx-ds-${var.datasource_number}-raw"
+  refined_bucket_name       = "stg-dlk-sbx-ds-${var.datasource_number}-refined"
+  datasource_bucket_folder  = "events_feed/events_jsonl_gzip/"
+  artifacts_bucket_name     = "stg-dlk-sbx-code-artifacts"
+  database_name             = "stg-dlk-sbx-ds${var.datasource_number}-raw-db"
+  raw_role_name             = "stg-dlk-sbx-ds${var.datasource_number}-source-to-raw-glue-job-role"
+  raw_script_name           = "stg-dlk-sbx-ds${var.datasource_number}-job-source-to-raw"
+  refined_script_name       = "stg-dlk-sbx-ds${var.datasource_number}-job-raw-to-refined"
+  kms_key_arn               = "arn:aws:kms:eu-west-1:816247855850:key/396cd8ff-4b3d-4b17-9df4-9449185fdd2e"
+  ext_user_name             = "ds${var.datasource_number}_sap_cdp_ext_user"
+  ext_role_name             = "ds${var.datasource_number}_sap_cdp_ext_role"
 }
 
 resource "aws_s3_bucket" "raw_bucket" {
