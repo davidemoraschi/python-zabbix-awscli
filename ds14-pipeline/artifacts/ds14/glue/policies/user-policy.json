@@ -1,0 +1,24 @@
+{
+    "Statement": [
+        {
+            "Sid": "SapCdpUploadJsonFiles",
+            "Action": [
+                "s3:PutObject",
+                "s3:GetBucketLocation"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+                "${resource-arn}/*"
+            ]
+        },
+        {
+            "Sid": "SapCdpListBucket",
+            "Effect": "Allow",
+            "Action": "s3:ListBucket",
+            "Resource": [
+                "${resource-arn}"
+            ]
+        }
+    ],
+    "Version": "2012-10-17"
+}
