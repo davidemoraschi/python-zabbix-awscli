@@ -140,13 +140,13 @@ resource "aws_glue_catalog_database" "raw_glue_database" {
   location_uri = "s3://${local.raw_bucket_name}"
 }
 
-# resource "aws_lakeformation_permissions" "raw_database_permissions" {
-#   principal   = aws_iam_role.job_role.arn
-#   permissions = ["CREATE_TABLE", "DESCRIBE"]
-#   database {
-#     name = aws_glue_catalog_database.raw_glue_database.name
-#   }
-# }
+resource "aws_lakeformation_permissions" "raw_database_permissions" {
+  principal   = aws_iam_role.raw_job_role.arn
+  permissions = ["CREATE_TABLE", "DESCRIBE"]
+  database {
+    name = aws_glue_catalog_database.raw_glue_database.name
+  }
+}
 
 # resource "aws_lakeformation_permissions" "raw_tables_permissions" {
 #   principal   = aws_iam_role.job_role.arn
