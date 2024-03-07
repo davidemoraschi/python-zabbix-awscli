@@ -106,11 +106,11 @@ resource "aws_iam_user_policy_attachment" "ext_user_policy_attachment" {
   policy_arn  = aws_iam_policy.ext_user_policy.arn
 }
 
-# resource "aws_iam_role" "job_role" {
-#   name               = local.role_name
-#   # assume_role_policy = templatefile("./trust-policy.json", { service = "glue.amazonaws.com" })
-#   assume_role_policy = templatefile("${path.module}/artifacts/ds${var.datasource_number}/glue/policies/trust-policy.json", { service = "glue.amazonaws.com" })
-# }
+resource "aws_iam_role" "raw_job_role" {
+  name               = local.raw_role_name
+  assume_role_policy = templatefile("${path.module}/artifacts/ds${var.datasource_number}/glue/policies/trust-policy.json", 
+    { service = "glue.amazonaws.com" })
+}
 
 # resource "aws_iam_policy" "job_role_policy" {
 #   name = "${local.role_name}_policy"
