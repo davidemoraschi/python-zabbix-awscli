@@ -244,35 +244,33 @@ resource "aws_glue_catalog_table" "biomaterial_milestone_updates_jsonl_gzip" {
   }
 }
 
-# resource "aws_s3_object" "raw_glue_job_script" {
-#   bucket      = local.artifacts_bucket_name
-#   key         = "artifacts/glue_job_${local.datasource}/code/${local.raw_script_name}.py"
-#   source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/code/${local.raw_script_name}.py"
-#   source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/code/${local.raw_script_name}.py")
-# }
+resource "aws_s3_object" "raw_glue_job_script" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/code/${local.raw_script_name}.py"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/code/${local.raw_script_name}.py"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/code/${local.raw_script_name}.py")
+}
 
-# resource "aws_s3_object" "glue_job_config" {
-#   bucket      = local.artifacts_bucket_name
-#   key         = "artifacts/glue_job_${local.datasource}/code/config.py"
-#   source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/code/config.py"
-#   source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/code/config.py")
-# }
+resource "aws_s3_object" "glue_job_config" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/code/config.py"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/code/config.py"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/code/config.py")
+}
 
-# resource "aws_s3_object" "glue_job_common_functions" {
-#   bucket      = local.artifacts_bucket_name
-#   key         = "artifacts/glue_job_${local.datasource}/code/common_functions.py"
-#   source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/code/common_functions.py"
-#   source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/code/common_functions.py")
-#   # etag               = filemd5("../common_functions.py")
-# }
+resource "aws_s3_object" "glue_job_common_functions" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/code/common_functions.py"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/code/common_functions.py"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/code/common_functions.py")
+}
 
-# resource "aws_s3_object" "glue_job_gzip_s3_and_json" {
-#   bucket      = local.artifacts_bucket_name
-#   key         = "artifacts/glue_job_${local.datasource}/code/gzip_s3_and_json_py3.py"
-#   source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/code/gzip_s3_and_json_py3.py"
-#   source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/code/gzip_s3_and_json_py3.py")
-#   # etag               = filemd5("../gzip_s3_and_json_py3.py")
-# }
+resource "aws_s3_object" "glue_job_gzip_s3_and_json" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/code/gzip_s3_and_json_py3.py"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/code/gzip_s3_and_json_py3.py"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/code/gzip_s3_and_json_py3.py")
+}
 
 # resource "aws_glue_job" "glue_job" {
 #   name                            = local.raw_script_name
