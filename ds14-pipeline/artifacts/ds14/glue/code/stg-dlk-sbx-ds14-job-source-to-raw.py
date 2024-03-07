@@ -1,9 +1,9 @@
 #!/usr/bin/python
 '''
 # Python Shell jobs on AWS Glue:
-# 1. Gets the latest JSON files from the bucket stg-dlk-sbx-ds-11-ext, folder events_feed/events_jsonl/
+# 1. Gets the latest JSON files from the bucket stg-dlk-sbx-ds-14-raw, folder events_feed/events_jsonl/
 # 2. Downloads JSON file, extracts JSON array and recompress it (1DPU?)
-# 3. Uploads to stg-dlk-sbx-ds-11-raw S3 bucket for further processing (deletes original file?)
+# 3. Uploads to stg-dlk-sbx-ds-14-raw S3 bucket for further processing (deletes original file?)
 # davide.moraschi@toptal.com 2024
 '''
 
@@ -29,7 +29,7 @@ print(tabulate(tabular_data=args.items(), headers=['args.keys()', 'args.values()
 EVENT_TYPES: List[str] = json.loads(args['EVENT_TYPES'])
 WORKFLOW_NAME: str = args['WORKFLOW_NAME']
 WORKFLOW_RUN_ID: str = args['WORKFLOW_RUN_ID']
-JOB_NAME: str = args['JOB_NAME'] if 'JOB_NAME' in args else 'stg-dlk-sbx-ds11-job-source-to-raw'
+JOB_NAME: str = args['JOB_NAME'] if 'JOB_NAME' in args else 'stg-dlk-sbx-ds14-job-source-to-raw'
 JOB_RUN_ID: int = int(time.time())
 
 
