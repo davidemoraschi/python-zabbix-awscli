@@ -37,12 +37,29 @@ resource "aws_s3_bucket_policy" "raw_bucket_policy" {
   policy  = templatefile("${path.module}/artifacts/ds${var.datasource_number}/glue/policies/bucket-policy.json", { resource-arn = aws_s3_bucket.raw_bucket.arn })
 }
 
-resource "aws_s3_bucket_public_access_block" "bucket_access_block" {
+resource "aws_s3_bucket_public_access_block" "raw_bucket_access_block" {
   bucket                  = aws_s3_bucket.raw_bucket.id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_versioning" "raw_bucket_versioning" {
+  bucket = aws_s3_bucket.raw_bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "raw_bucket_encryption" {
+  bucket = aws_s3_bucket.raw_bucket.id  
+  rule {
+    bucket_key_enabled = true
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+    }
+  }
 }
 
 # resource "aws_iam_role" "job_role" {
