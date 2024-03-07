@@ -148,14 +148,14 @@ resource "aws_lakeformation_permissions" "raw_database_permissions" {
   }
 }
 
-# resource "aws_lakeformation_permissions" "raw_tables_permissions" {
-#   principal   = aws_iam_role.job_role.arn
-#   permissions = ["ALL"]
-#   table {
-#     database_name = aws_glue_catalog_database.raw_glue_database.name
-#     wildcard      = true
-#   }
-# }
+resource "aws_lakeformation_permissions" "raw_tables_permissions" {
+  principal   = aws_iam_role.raw_job_role.arn
+  permissions = ["ALL"]
+  table {
+    database_name = aws_glue_catalog_database.raw_glue_database.name
+    wildcard      = true
+  }
+}
 
 # resource "aws_glue_catalog_table" "page_views_jsonl_gzip" {
 #   name          = "page_views_jsonl_gzip"
