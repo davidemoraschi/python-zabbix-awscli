@@ -325,7 +325,7 @@ resource "aws_glue_workflow" "pipeline" {
   max_concurrent_runs = 1
 }
 
-resource "aws_glue_trigger" "pipeline_trigger" {
+resource "aws_glue_trigger" "source_to_raw_pipeline_trigger" {
   name                  = "ds${var.datasource_number}_pipeline_schedule"
   schedule              = "cron(0 4 ? * MON-FRI *)"  #cron(Minutes Hours Day-of-month Month Day-of-week Year)
   type                  = "SCHEDULED"
@@ -500,5 +500,21 @@ resource "aws_glue_job" "refined_glue_job" {
     Author                        = "davide.moraschi@toptal.com"
     # ManagedBy                   = "Terraform"
     Project                       = "stg-dlk"
+  }
+}
+
+resource "aws_glue_trigger" "raw_to_refined_pipeline_trigger" {
+  name                  = "ds${var.datasource_number}_raw_to_refined_trigger"
+  type                  = "CONDITIONAL"
+  workflow_name         = aws_glue_workflow.pipeline.name
+  actions {
+    job_name            = aws_glue_job.refined_glue_job.name
+    timeout             = 15  
+  }
+  predicate {
+    conditions {
+      job_name = aws_glue_job.raw_glue_job.name
+      state    = "SUCCEEDED"
+    }
   }
 }

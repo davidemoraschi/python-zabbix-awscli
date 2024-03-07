@@ -65,6 +65,13 @@
 			"Effect": "Allow",
 			"Action": "sns:Publish",
 			"Resource": "arn:aws:sns:${region}:${account_id}:${failure_topic_name}"
+		},
+		{
+			"Action": [
+				"lakeformation:GetDataAccess"
+			],
+			"Effect": "Allow",
+			"Resource": "*"
 		}
 	],
 	"Version": "2012-10-17"
