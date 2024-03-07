@@ -62,6 +62,33 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "raw_bucket_encryp
   }
 }
 
+resource "aws_s3_bucket_lifecycle_configuration" "raw_bucket_lifecycle" {
+  bucket = aws_s3_bucket.raw_bucket.id 
+  rule {
+    id = "expire-after-365-days"
+    filter {}
+    expiration {
+      days = 365
+    }
+    status = "Enabled"
+  }
+}
+
+# resource "aws_cloudtrail" "raw_bucket_cloudtrail" {
+#   depends_on = [aws_s3_bucket_policy.bucket_policy]
+#   name                          = "${local.raw_bucket_name}_cloudtrail"
+#   s3_bucket_name                = aws_s3_bucket.raw_bucket.id
+#   include_global_service_events = false
+#     event_selector {
+#     read_write_type           = "All"
+#     include_management_events = true
+#     data_resource {
+#       type   = "AWS::S3::Object"
+#       values = ["arn:aws:s3:::${local.raw_bucket_name}/*"]
+#     }
+#   }
+# }
+
 # resource "aws_iam_role" "job_role" {
 #   name               = local.role_name
 #   # assume_role_policy = templatefile("./trust-policy.json", { service = "glue.amazonaws.com" })
