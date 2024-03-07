@@ -186,63 +186,63 @@ resource "aws_glue_catalog_table" "page_views_jsonl_gzip" {
   }
 }
 
-# resource "aws_glue_catalog_table" "biomaterial_state_updates_jsonl_gzip" {
-#   name          = "biomaterial_state_updates_jsonl_gzip"
-#   database_name = aws_glue_catalog_database.raw_glue_database.name
-#   table_type    = "EXTERNAL_TABLE"
-#   parameters    = { "EXTERNAL" = "TRUE" }
-#   storage_descriptor {
-#     location      = "s3://${local.raw_bucket_name}/${local.datasource_bucket_folder}BIOMATERIAL_STATE_UPDATE/"
-#     input_format  = "org.apache.hadoop.mapred.TextInputFormat"
-#     output_format = "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
-#     ser_de_info {
-#       name                  = "json_serde"
-#       serialization_library = "org.openx.data.jsonserde.JsonSerDe"
-#       parameters            = { "paths" = "contactid,eventtype,eventattributes" }
-#     }
-#     columns {
-#       name = "contactid"
-#       type = "string"
-#     }
-#     columns {
-#       name = "eventtype"
-#       type = "string"
-#     }
-#     columns {
-#       name = "eventattributes"
-#       type = "string"
-#     }
-#   }
-# }
+resource "aws_glue_catalog_table" "biomaterial_state_updates_jsonl_gzip" {
+  name                            = "biomaterial_state_updates_jsonl_gzip"
+  database_name                   = aws_glue_catalog_database.raw_glue_database.name
+  table_type                      = "EXTERNAL_TABLE"
+  parameters                      = { "EXTERNAL" = "TRUE" }
+  storage_descriptor {
+    location                      = "s3://${local.raw_bucket_name}/${local.datasource_bucket_folder}BIOMATERIAL_STATE_UPDATE/"
+    input_format                  = "org.apache.hadoop.mapred.TextInputFormat"
+    output_format =               "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
+    ser_de_info {
+      name                        = "json_serde"
+      serialization_library       = "org.openx.data.jsonserde.JsonSerDe"
+      parameters                  = { "paths" = "contactid,eventtype,eventattributes" }
+    }
+      columns {
+        name = "contactid"
+        type = "string"
+      }
+      columns {
+        name = "eventtype"
+        type = "string"
+      }
+      columns {
+        name = "eventattributes"
+        type = "string"
+      }
+  }
+}
 
-# resource "aws_glue_catalog_table" "biomaterial_milestone_updates_jsonl_gzip" {
-#   name          = "biomaterial_milestone_updates_jsonl_gzip"
-#   database_name = aws_glue_catalog_database.raw_glue_database.name
-#   table_type    = "EXTERNAL_TABLE"
-#   parameters    = { "EXTERNAL" = "TRUE" }
-#   storage_descriptor {
-#     location      = "s3://${local.raw_bucket_name}/${local.datasource_bucket_folder}BIOMATERIAL_MILESTONE_UPDATE/"
-#     input_format  = "org.apache.hadoop.mapred.TextInputFormat"
-#     output_format = "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
-#     ser_de_info {
-#       name                  = "json_serde"
-#       serialization_library = "org.openx.data.jsonserde.JsonSerDe"
-#       parameters            = { "paths" = "contactid,eventtype,eventattributes" }
-#     }
-#     columns {
-#       name = "contactid"
-#       type = "string"
-#     }
-#     columns {
-#       name = "eventtype"
-#       type = "string"
-#     }
-#     columns {
-#       name = "eventattributes"
-#       type = "string"
-#     }
-#   }
-# }
+resource "aws_glue_catalog_table" "biomaterial_milestone_updates_jsonl_gzip" {
+  name                            = "biomaterial_milestone_updates_jsonl_gzip"
+  database_name                   = aws_glue_catalog_database.raw_glue_database.name
+  table_type                      = "EXTERNAL_TABLE"
+  parameters                      = { "EXTERNAL" = "TRUE" }
+  storage_descriptor {
+    location                      = "s3://${local.raw_bucket_name}/${local.datasource_bucket_folder}BIOMATERIAL_MILESTONE_UPDATE/"
+    input_format                  = "org.apache.hadoop.mapred.TextInputFormat"
+    output_format                 = "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
+    ser_de_info {
+      name                        = "json_serde"
+      serialization_library       = "org.openx.data.jsonserde.JsonSerDe"
+      parameters                  = { "paths" = "contactid,eventtype,eventattributes" }
+    }
+      columns {
+        name = "contactid"
+        type = "string"
+      }
+      columns {
+        name = "eventtype"
+        type = "string"
+      }
+      columns {
+        name = "eventattributes"
+        type = "string"
+      }
+  }
+}
 
 # resource "aws_s3_object" "raw_glue_job_script" {
 #   bucket      = local.artifacts_bucket_name
