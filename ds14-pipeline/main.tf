@@ -134,11 +134,11 @@ resource "aws_lakeformation_resource" "data_location" {
   role_arn = aws_iam_role.raw_job_role.arn
 }
 
-# resource "aws_glue_catalog_database" "raw_glue_database" {
-#   name         = local.database_name
-#   description  = "Glue catalog db for ${local.datasource} raw zone."
-#   location_uri = "s3://${local.raw_bucket_name}"
-# }
+resource "aws_glue_catalog_database" "raw_glue_database" {
+  name         = local.raw_database_name
+  description  = "Glue catalog db for ${local.datasource} raw zone."
+  location_uri = "s3://${local.raw_bucket_name}"
+}
 
 # resource "aws_lakeformation_permissions" "raw_database_permissions" {
 #   principal   = aws_iam_role.job_role.arn
