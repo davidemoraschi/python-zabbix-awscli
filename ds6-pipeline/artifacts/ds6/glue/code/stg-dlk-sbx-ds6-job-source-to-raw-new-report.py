@@ -132,6 +132,7 @@ def main() -> None:
 
             # Create S3 client for uploading to raw bucket
             s3client = boto3.client('s3')
+            s3resource = boto3.resource('s3')
 
             # Process each CSV file
             for csvfile in filelist:
@@ -149,6 +150,12 @@ def main() -> None:
                 # Upload file to S3
                 upload_json_gz(s3client=s3client, bucket=S3_BUCKET,
                                key=S3_PATH + f'{str(JOB_RUN_ID)}-{s3_filename}.gz', obj=csvcontent)
+                
+                bucket = s3resource.Bucket(S3_BUCKET)
+                objects = bucket.objects.all()
+                objects_to_delete = [{'Key': o.key} for o in objects if s3_filename in o.key and str(JOB_RUN_ID) not in o.key]
+                if len(objects_to_delete):
+                    s3resource.meta.client.delete_objects(Bucket=S3_BUCKET, Delete={'Objects': objects_to_delete})
 
         # Log end of job
         log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
