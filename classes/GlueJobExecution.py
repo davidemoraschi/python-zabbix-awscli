@@ -8,6 +8,7 @@
 
 import json
 import datetime
+import time
 
 
 class GlueJobExecution:
@@ -25,6 +26,7 @@ class GlueJobExecution:
         self.executiontime = executiontime
         self.errormessage = errormessage
         self.maxcapacity = maxcapacity
+        self._ts = time.time()
 
     def serialize_datetime(self, obj):
         '''Define a custom function to serialize datetime objects'''

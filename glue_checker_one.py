@@ -20,7 +20,7 @@ def sort_jobexecution(gluejob):
     return '9999'
 
 
-def send_to_zabbix(gluejobexecution):
+def send_to_zabbix(gluejobexecution, jobname):
     '''If a Zabbix server is available sends the JSON payload to it'''
     json_return_list: list = []
 
@@ -33,8 +33,10 @@ def send_to_zabbix(gluejobexecution):
     sender = Sender('zabbix-server')
     # Send a value to a Zabbix server/proxy with specified parameters
     # Parameters: (host, key, value, clock, ns)
-    responses = sender.send_value('zabbix-server', 'aws-glue-jobs',
+    responses = sender.send_value(jobname, 'aws-glue-job-result',
                                   str(json_return_list).replace("'", ""))
+    
+    # print(f'job-result-{jobname}')
     for node, resp in responses.items():
         # Check if the value sending was successful
         if resp.failed == 0:
@@ -69,42 +71,43 @@ def main():
     joblist: list = []
 
     profile_session = boto3.Session(region_name=str(sys.argv[1]), profile_name=str(sys.argv[2]))
+    jobname:str = str(sys.argv[3])
     client = profile_session.client(service_name='glue')
-    response = client.get_jobs(MaxResults=1000)
+    #response = client.get_jobs(MaxResults=1000)
 
-    for element in response['Jobs']:
-        joblist.append(element['Name'])
+    # for element in response['Jobs']:
+    joblist.append(jobname)
 
-    gluejobexecution: GlueJobExecution = []
+    gluejobexecution = []
     for job in joblist:
-        response = client.get_job_runs(JobName=job, MaxResults=1)
-        if response['JobRuns']:
+        response = client.get_job_runs(JobName=job, MaxResults=1)       #type: ignore
+        if response['JobRuns']:                                         #type: ignore   
 
-            if 'ErrorMessage' in response['JobRuns'][0].keys():
-                errormessage = response['JobRuns'][0]['ErrorMessage']
+            if 'ErrorMessage' in response['JobRuns'][0].keys():         #type: ignore
+                errormessage = response['JobRuns'][0]['ErrorMessage']   #type: ignore
             else:
                 errormessage = ''
-            if 'CompletedOn' in response['JobRuns'][0].keys():
-                completedon = response['JobRuns'][0]['CompletedOn']
+            if 'CompletedOn' in response['JobRuns'][0].keys():          #type: ignore
+                completedon = response['JobRuns'][0]['CompletedOn']     #type: ignore
             else:
-                if response['JobRuns'][0]['ExecutionTime'] == 0:
-                    completedon = response['JobRuns'][0]['StartedOn']
+                if response['JobRuns'][0]['ExecutionTime'] == 0:        #type: ignore
+                    completedon = response['JobRuns'][0]['StartedOn']   #type: ignore
                 else:
-                    completedon = '--'
+                    completedon = '--'                                  #type: ignore
 
             gluejobexecution.append(GlueJobExecution(
-                jobname=response['JobRuns'][0]['JobName'],
-                jobrunid=response['JobRuns'][0]['Id'],
-                jobrunstate=response['JobRuns'][0]['JobRunState'],
-                startedon=response['JobRuns'][0]['StartedOn'],
+                jobname=response['JobRuns'][0]['JobName'],              #type: ignore
+                jobrunid=response['JobRuns'][0]['Id'],                  #type: ignore
+                jobrunstate=response['JobRuns'][0]['JobRunState'],      #type: ignore
+                startedon=response['JobRuns'][0]['StartedOn'],          #type: ignore
                 completedon=completedon,
-                executiontime=response['JobRuns'][0]['ExecutionTime'],
-                maxcapacity=response['JobRuns'][0]['MaxCapacity'],
+                executiontime=response['JobRuns'][0]['ExecutionTime'],  #type: ignore
+                maxcapacity=response['JobRuns'][0]['MaxCapacity'],      #type: ignore
                 errormessage=errormessage)
             )
 
     #pretty_print(gluejobexecution)
-    send_to_zabbix(gluejobexecution)
+    send_to_zabbix(gluejobexecution, jobname)
 
 
 if __name__ == "__main__":
