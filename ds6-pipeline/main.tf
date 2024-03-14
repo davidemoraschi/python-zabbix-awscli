@@ -16,7 +16,7 @@ locals {
   datasource               = "ds${var.datasource_number}"
   ext_bucket_name          = "stg-dlk-sbx-ds-${var.datasource_number}-ext"
   raw_bucket_name          = "stg-dlk-sbx-ds-${var.datasource_number}-raw"
-  datasource_bucket_folder = "docebo_feed/reports_csv_gzip/"
+  datasource_bucket_folder = "docebo_feed/"
   artifacts_bucket_name    = "stg-dlk-sbx-code-artifacts"
   database_name            = "stg-dlk-sbx-ds${var.datasource_number}-raw-db"
   role_name                = "stg-dlk-sbx-ds${var.datasource_number}-source-to-raw-glue-job-role-new-report"
@@ -93,38 +93,39 @@ resource "aws_iam_role_policy_attachment" "role_policy_attachment" {
 #   }
 # }
 
-resource "aws_glue_catalog_table" "users_csv_gzip" {
-  name                      = "users_csv_gzip"
-  database_name             = local.database_name
-  table_type                = "EXTERNAL_TABLE"
-  parameters                = { "EXTERNAL" = "TRUE" }
-  storage_descriptor {
-    location                = "s3://${local.raw_bucket_name}/${local.datasource_bucket_folder}"
-    input_format            = "org.apache.hadoop.mapred.TextInputFormat"
-    output_format           = "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
-    ser_de_info {
-      name                  = "OpenCSVSerde"
-      serialization_library = "org.apache.hadoop.hive.serde2.OpenCSVSerde"
-      parameters            = { "paths" = "username,branchname,branchpath,branchescodes" }
-    }
-    columns {
-      name                  = "username"
-      type                  = "string"
-    }
-    columns {
-      name                  = "branchname"
-      type                  = "string"
-    }
-    columns {
-      name                  = "branchpath"
-      type                  = "string"
-    }
-    columns {
-      name                  = "branchescodes"
-      type                  = "string"
-    }
-  }
-}
+# # Not sure if it's better to use Athena SQL to create external tables here...
+# resource "aws_glue_catalog_table" "users_csv_gzip" {
+#   name                      = "users_csv_gzip"
+#   database_name             = local.database_name
+#   table_type                = "EXTERNAL_TABLE"
+#   parameters                = { "EXTERNAL" = "TRUE" }
+#   storage_descriptor {
+#     location                = "s3://${local.raw_bucket_name}/${local.datasource_bucket_folder}"
+#     input_format            = "org.apache.hadoop.mapred.TextInputFormat"
+#     output_format           = "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
+#     ser_de_info {
+#       name                  = "OpenCSVSerde"
+#       serialization_library = "org.apache.hadoop.hive.serde2.OpenCSVSerde"
+#       parameters            = { "paths" = "username,branchname,branchpath,branchescodes" }
+#     }
+#     columns {
+#       name                  = "username"
+#       type                  = "string"
+#     }
+#     columns {
+#       name                  = "branchname"
+#       type                  = "string"
+#     }
+#     columns {
+#       name                  = "branchpath"
+#       type                  = "string"
+#     }
+#     columns {
+#       name                  = "branchescodes"
+#       type                  = "string"
+#     }
+#   }
+# }
 
 resource "aws_s3_object" "glue_job_script" {
   bucket      = local.artifacts_bucket_name
