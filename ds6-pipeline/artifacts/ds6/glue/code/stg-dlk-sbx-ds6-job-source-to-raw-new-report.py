@@ -144,18 +144,19 @@ def main() -> None:
                     csvcontent: str = file.read()
 
                 # Log file upload
+                s3_table_folder=s3_filename.replace('Marcom_Galileo_Data_Pipeline_','').replace('.csv','')
                 log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
                     job_run_id=str(JOB_RUN_ID), str_message=f'Uploading file: {s3_filename}')
 
                 # Upload file to S3
                 upload_json_gz(s3client=s3client, bucket=S3_BUCKET,
-                               key=S3_PATH + f'{str(JOB_RUN_ID)}-{s3_filename}.gz', obj=csvcontent)
+                               key=S3_PATH + f'{s3_table_folder}/' + f'{str(JOB_RUN_ID)}-{s3_filename}.gz', obj=csvcontent)
                 
                 bucket = s3resource.Bucket(S3_BUCKET)
                 objects = bucket.objects.all()
                 objects_to_delete = [{'Key': o.key} for o in objects if s3_filename in o.key and str(JOB_RUN_ID) not in o.key]
                 if len(objects_to_delete):
-                    s3resource.meta.client.delete_objects(Bucket=S3_BUCKET, Delete={'Objects': objects_to_delete})
+                    s3resource.meta.client.delete_objects(Bucket=S3_BUCKET, Delete={'Objects': objects_to_delete})#type: ignore
 
         # Log end of job
         log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
