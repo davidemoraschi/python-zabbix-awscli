@@ -148,6 +148,11 @@ def main() -> None:
                 log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
                     job_run_id=str(JOB_RUN_ID), str_message=f'Uploading file: {s3_filename}')
 
+                # Report "5f895d7d-7a3f-4de2-8cfb-a871d2b8780c" has embedded HTML causing errors because of newlines.
+                # This is a workaround to remove the newlines and upload the file to S3.
+                if report_id == '5f895d7d-7a3f-4de2-8cfb-a871d2b8780c':
+                    csvcontent = csvcontent.replace('p>\n', 'p>').replace('\n<p>', '<p>')
+                
                 # Upload file to S3
                 upload_json_gz(s3client=s3client, bucket=S3_BUCKET,
                                key=S3_PATH + f'{s3_table_folder}/' + f'{str(JOB_RUN_ID)}-{s3_filename}.gz', obj=csvcontent)
