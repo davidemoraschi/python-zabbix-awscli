@@ -163,92 +163,92 @@ resource "aws_lakeformation_permissions" "raw_tables_permissions" {
   }
 }
 
-resource "aws_glue_catalog_table" "page_views_jsonl_gzip" {
-  name                            = "page_views_jsonl_gzip"
-  database_name                   = aws_glue_catalog_database.raw_glue_database.name
-  table_type                      = "EXTERNAL_TABLE"
-  parameters                      = { "EXTERNAL" = "TRUE" }
-  storage_descriptor {
-    location                      = "s3://${local.raw_bucket_name}/${local.datasource_bucket_folder}PAGE_VIEW/"
-    input_format                  = "org.apache.hadoop.mapred.TextInputFormat"
-    output_format                 = "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
-    ser_de_info {
-      name                        = "json_serde"
-      serialization_library       = "org.openx.data.jsonserde.JsonSerDe"
-      parameters                  = { "paths" = "contactid,eventtype,eventattributes" }
-    }
-      columns {
-        name = "contactid"
-        type = "string"
-      }
-      columns {
-        name = "eventtype"
-        type = "string"
-      }
-      columns {
-        name = "eventattributes"
-        type = "string"
-      }
-  }
-}
+# resource "aws_glue_catalog_table" "page_views_jsonl_gzip" {
+#   name                            = "page_views_jsonl_gzip"
+#   database_name                   = aws_glue_catalog_database.raw_glue_database.name
+#   table_type                      = "EXTERNAL_TABLE"
+#   parameters                      = { "EXTERNAL" = "TRUE" }
+#   storage_descriptor {
+#     location                      = "s3://${local.raw_bucket_name}/${local.datasource_bucket_folder}PAGE_VIEW/"
+#     input_format                  = "org.apache.hadoop.mapred.TextInputFormat"
+#     output_format                 = "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
+#     ser_de_info {
+#       name                        = "json_serde"
+#       serialization_library       = "org.openx.data.jsonserde.JsonSerDe"
+#       parameters                  = { "paths" = "contactid,eventtype,eventattributes" }
+#     }
+#       columns {
+#         name = "contactid"
+#         type = "string"
+#       }
+#       columns {
+#         name = "eventtype"
+#         type = "string"
+#       }
+#       columns {
+#         name = "eventattributes"
+#         type = "string"
+#       }
+#   }
+# }
 
-resource "aws_glue_catalog_table" "biomaterial_state_updates_jsonl_gzip" {
-  name                            = "biomaterial_state_updates_jsonl_gzip"
-  database_name                   = aws_glue_catalog_database.raw_glue_database.name
-  table_type                      = "EXTERNAL_TABLE"
-  parameters                      = { "EXTERNAL" = "TRUE" }
-  storage_descriptor {
-    location                      = "s3://${local.raw_bucket_name}/${local.datasource_bucket_folder}BIOMATERIAL_STATE_UPDATE/"
-    input_format                  = "org.apache.hadoop.mapred.TextInputFormat"
-    output_format =               "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
-    ser_de_info {
-      name                        = "json_serde"
-      serialization_library       = "org.openx.data.jsonserde.JsonSerDe"
-      parameters                  = { "paths" = "contactid,eventtype,eventattributes" }
-    }
-      columns {
-        name = "contactid"
-        type = "string"
-      }
-      columns {
-        name = "eventtype"
-        type = "string"
-      }
-      columns {
-        name = "eventattributes"
-        type = "string"
-      }
-  }
-}
+# resource "aws_glue_catalog_table" "biomaterial_state_updates_jsonl_gzip" {
+#   name                            = "biomaterial_state_updates_jsonl_gzip"
+#   database_name                   = aws_glue_catalog_database.raw_glue_database.name
+#   table_type                      = "EXTERNAL_TABLE"
+#   parameters                      = { "EXTERNAL" = "TRUE" }
+#   storage_descriptor {
+#     location                      = "s3://${local.raw_bucket_name}/${local.datasource_bucket_folder}BIOMATERIAL_STATE_UPDATE/"
+#     input_format                  = "org.apache.hadoop.mapred.TextInputFormat"
+#     output_format =               "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
+#     ser_de_info {
+#       name                        = "json_serde"
+#       serialization_library       = "org.openx.data.jsonserde.JsonSerDe"
+#       parameters                  = { "paths" = "contactid,eventtype,eventattributes" }
+#     }
+#       columns {
+#         name = "contactid"
+#         type = "string"
+#       }
+#       columns {
+#         name = "eventtype"
+#         type = "string"
+#       }
+#       columns {
+#         name = "eventattributes"
+#         type = "string"
+#       }
+#   }
+# }
 
-resource "aws_glue_catalog_table" "biomaterial_milestone_updates_jsonl_gzip" {
-  name                            = "biomaterial_milestone_updates_jsonl_gzip"
-  database_name                   = aws_glue_catalog_database.raw_glue_database.name
-  table_type                      = "EXTERNAL_TABLE"
-  parameters                      = { "EXTERNAL" = "TRUE" }
-  storage_descriptor {
-    location                      = "s3://${local.raw_bucket_name}/${local.datasource_bucket_folder}BIOMATERIAL_MILESTONE_UPDATE/"
-    input_format                  = "org.apache.hadoop.mapred.TextInputFormat"
-    output_format                 = "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
-    ser_de_info {
-      name                        = "json_serde"
-      serialization_library       = "org.openx.data.jsonserde.JsonSerDe"
-      parameters                  = { "paths" = "contactid,eventtype,eventattributes" }
-    }
-      columns {
-        name = "contactid"
-        type = "string"
-      }
-      columns {
-        name = "eventtype"
-        type = "string"
-      }
-      columns {
-        name = "eventattributes"
-        type = "string"
-      }
-  }
-}
+# resource "aws_glue_catalog_table" "biomaterial_milestone_updates_jsonl_gzip" {
+#   name                            = "biomaterial_milestone_updates_jsonl_gzip"
+#   database_name                   = aws_glue_catalog_database.raw_glue_database.name
+#   table_type                      = "EXTERNAL_TABLE"
+#   parameters                      = { "EXTERNAL" = "TRUE" }
+#   storage_descriptor {
+#     location                      = "s3://${local.raw_bucket_name}/${local.datasource_bucket_folder}BIOMATERIAL_MILESTONE_UPDATE/"
+#     input_format                  = "org.apache.hadoop.mapred.TextInputFormat"
+#     output_format                 = "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
+#     ser_de_info {
+#       name                        = "json_serde"
+#       serialization_library       = "org.openx.data.jsonserde.JsonSerDe"
+#       parameters                  = { "paths" = "contactid,eventtype,eventattributes" }
+#     }
+#       columns {
+#         name = "contactid"
+#         type = "string"
+#       }
+#       columns {
+#         name = "eventtype"
+#         type = "string"
+#       }
+#       columns {
+#         name = "eventattributes"
+#         type = "string"
+#       }
+#   }
+# }
 
 resource "aws_s3_object" "raw_glue_job_script" {
   bucket      = local.artifacts_bucket_name
@@ -460,9 +460,23 @@ resource "aws_s3_object" "refiend_glue_job_script" {
 
 resource "aws_s3_object" "sql_job_script_001" {
   bucket      = local.artifacts_bucket_name
-  key         = "artifacts/glue_job_${local.datasource}/sql/001. SELECT TABLE page_views.sql"
-  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/001. SELECT TABLE page_views.sql"
-  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/001. SELECT TABLE page_views.sql")
+  key         = "artifacts/glue_job_${local.datasource}/sql/001. CREATE EXTERNAL TABLE stg-dlk-sbx-ds14-raw-db.sapcdp_page_views_jsonl_gzip.sql"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/001. CREATE EXTERNAL TABLE stg-dlk-sbx-ds14-raw-db.sapcdp_page_views_jsonl_gzip.sql"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/001. CREATE EXTERNAL TABLE stg-dlk-sbx-ds14-raw-db.sapcdp_page_views_jsonl_gzip.sql")
+}
+
+resource "aws_s3_object" "sql_job_script_002" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/sql/002. CREATE EXTERNAL TABLE stg-dlk-sbx-ds14-raw-db.sapcdp_biomaterial_milestone_updates_jsonl_gzip.sql"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/002. CREATE EXTERNAL TABLE stg-dlk-sbx-ds14-raw-db.sapcdp_biomaterial_milestone_updates_jsonl_gzip.sql"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/002. CREATE EXTERNAL TABLE stg-dlk-sbx-ds14-raw-db.sapcdp_biomaterial_milestone_updates_jsonl_gzip.sql")
+}
+
+resource "aws_s3_object" "sql_job_script_003" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/sql/003. CREATE EXTERNAL TABLE stg-dlk-sbx-ds14-raw-db.sapcdp_biomaterial_state_updates_jsonl_gzip.sql"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/003. CREATE EXTERNAL TABLE stg-dlk-sbx-ds14-raw-db.sapcdp_biomaterial_state_updates_jsonl_gzip.sql"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/003. CREATE EXTERNAL TABLE stg-dlk-sbx-ds14-raw-db.sapcdp_biomaterial_state_updates_jsonl_gzip.sql")
 }
 
 resource "aws_glue_job" "refined_glue_job" {
