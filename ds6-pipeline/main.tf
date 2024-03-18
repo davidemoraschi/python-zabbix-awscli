@@ -218,7 +218,7 @@ resource "aws_glue_trigger" "pipeline_trigger" {
     job_name            = aws_glue_job.glue_job.name
     timeout             = 15  
     arguments           = {
-        "--REPORT_IDS"  = "[\"7dd3a445-b55c-40d6-9293-cf767c4b7c85\",\"e0c33c01-9b3d-4e57-8c6f-e2f5aff29e7f\",\"d943fa1b-a420-4082-82e4-164721a3a4f9\",\"87ef3e0e-6f66-4256-a294-4858bafddb66\",\"836d478a-2839-4f1e-b75f-31682618ec8b\",\"0f2cce31-8ba5-44d4-b73f-b1b4589c74ed\",\"5f895d7d-7a3f-4de2-8cfb-a871d2b8780c\",\"8605e47a-0238-4049-879a-d95f2d40dd62\",\"b7736e69-6a11-4f16-bca2-49b863ba4670\"]"}
+        "--REPORT_IDS"  = "[\"079de1a9-68f4-4786-97b6-41c3e78d02dd\",\"7dd3a445-b55c-40d6-9293-cf767c4b7c85\",\"e0c33c01-9b3d-4e57-8c6f-e2f5aff29e7f\",\"d943fa1b-a420-4082-82e4-164721a3a4f9\",\"87ef3e0e-6f66-4256-a294-4858bafddb66\",\"836d478a-2839-4f1e-b75f-31682618ec8b\",\"0f2cce31-8ba5-44d4-b73f-b1b4589c74ed\",\"5f895d7d-7a3f-4de2-8cfb-a871d2b8780c\",\"8605e47a-0238-4049-879a-d95f2d40dd62\",\"b7736e69-6a11-4f16-bca2-49b863ba4670\"]"}
   }
 }
 
