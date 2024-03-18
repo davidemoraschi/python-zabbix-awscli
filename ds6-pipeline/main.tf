@@ -331,6 +331,13 @@ resource "aws_s3_object" "sql_job_script_003" {
   source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/003. CREATE EXTERNAL TABLE docebo_user_badges_csv_gzip.sql")
 }
 
+resource "aws_s3_object" "sql_job_script_004" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/sql/004. CREATE EXTERNAL TABLE docebo_user_session_csv_gzip.sql"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/004. CREATE EXTERNAL TABLE docebo_user_session_csv_gzip.sql"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/004. CREATE EXTERNAL TABLE docebo_user_session_csv_gzip.sql")
+}
+
 resource "aws_s3_object" "sql_job_script_021" {
   bucket      = local.artifacts_bucket_name
   key         = "artifacts/glue_job_${local.datasource}/sql/021. DROP TABLE dlk-reportid_74.sql"
