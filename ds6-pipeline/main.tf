@@ -284,25 +284,65 @@ resource "aws_lakeformation_permissions" "raw_refined_tables_permissions" {
   }
 }
 
+resource "aws_lakeformation_permissions" "refined_database_permissions" {
+  principal   = aws_iam_role.refined_job_role.arn
+  permissions = ["CREATE_TABLE", "DESCRIBE"]
+  database {
+    name = local.refined_database_name
+  }
+}
+
+resource "aws_lakeformation_permissions" "refined_tables_permissions" {
+  principal   = aws_iam_role.refined_job_role.arn
+  permissions = ["ALL"]
+  table {
+    database_name = local.refined_database_name
+    wildcard      = true
+  }
+}
+
 resource "aws_s3_object" "refined_glue_job_script" {
   bucket      = local.artifacts_bucket_name
   key         = "artifacts/glue_job_${local.datasource}/code/${local.refined_script_name}.py"
   source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/code/${local.refined_script_name}.py"
   source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/code/${local.refined_script_name}.py")
+
 }
+
 
 resource "aws_s3_object" "sql_job_script_001" {
   bucket      = local.artifacts_bucket_name
-  key         = "artifacts/glue_job_${local.datasource}/sql/001. DROP TABLE dlk-reportid_74.sql"
-  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/001. DROP TABLE dlk-reportid_74.sql"
-  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/001. DROP TABLE dlk-reportid_74.sql")
+  key         = "artifacts/glue_job_${local.datasource}/sql/001. CREATE EXTERNAL TABLE docebo_courses_users_csv_gzip.sql"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/001. CREATE EXTERNAL TABLE docebo_courses_users_csv_gzip.sql"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/001. CREATE EXTERNAL TABLE docebo_courses_users_csv_gzip.sql")
 }
 
 resource "aws_s3_object" "sql_job_script_002" {
   bucket      = local.artifacts_bucket_name
-  key         = "artifacts/glue_job_${local.datasource}/sql/002. CREATE TABLE dlk-reportid_74.sql"
-  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/002. CREATE TABLE dlk-reportid_74.sql"
-  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/002. CREATE TABLE dlk-reportid_74.sql")
+  key         = "artifacts/glue_job_${local.datasource}/sql/002. CREATE EXTERNAL TABLE docebo_groups_courses_csv_gzip.sql"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/002. CREATE EXTERNAL TABLE docebo_groups_courses_csv_gzip.sql"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/002. CREATE EXTERNAL TABLE docebo_groups_courses_csv_gzip.sql")
+}
+
+resource "aws_s3_object" "sql_job_script_003" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/sql/003. CREATE EXTERNAL TABLE docebo_user_badges_csv_gzip.sql"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/003. CREATE EXTERNAL TABLE docebo_user_badges_csv_gzip.sql"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/003. CREATE EXTERNAL TABLE docebo_user_badges_csv_gzip.sql")
+}
+
+resource "aws_s3_object" "sql_job_script_021" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/sql/021. DROP TABLE dlk-reportid_74.sql"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/021. DROP TABLE dlk-reportid_74.sql"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/021. DROP TABLE dlk-reportid_74.sql")
+}
+
+resource "aws_s3_object" "sql_job_script_022" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/sql/022. CREATE TABLE dlk-reportid_74.sql"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/022. CREATE TABLE dlk-reportid_74.sql"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/022. CREATE TABLE dlk-reportid_74.sql")
 }
 
 resource "aws_glue_job" "refined_glue_job" {
