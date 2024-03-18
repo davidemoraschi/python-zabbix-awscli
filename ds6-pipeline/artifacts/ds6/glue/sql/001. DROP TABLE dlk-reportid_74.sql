@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS `stg-dlk-sbx-ds6-refined-db`.`dlk-reportid_74`;
+DROP TABLE IF EXISTS `stg-dlk-sbx-ds6-refined-db`.`dlk_reportid_74`;
