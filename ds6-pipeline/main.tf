@@ -18,7 +18,8 @@ locals {
   raw_bucket_name          = "stg-dlk-sbx-ds-${var.datasource_number}-raw"
   datasource_bucket_folder = "docebo_feed/"
   artifacts_bucket_name    = "stg-dlk-sbx-code-artifacts"
-  database_name            = "stg-dlk-sbx-ds${var.datasource_number}-raw-db"
+  raw_database_name        = "stg-dlk-sbx-ds${var.datasource_number}-raw-db"
+  refined_database_name    = "stg-dlk-sbx-ds${var.datasource_number}-refined-db"
   raw_role_name            = "stg-dlk-sbx-ds${var.datasource_number}-source-to-raw-glue-job-role-new-report"
   raw_script_name          = "stg-dlk-sbx-ds${var.datasource_number}-job-source-to-raw-new-report"
   refined_role_name        = "stg-dlk-sbx-ds${var.datasource_number}-raw-to-refiined-glue-job-role-new-report"
@@ -54,7 +55,7 @@ resource "aws_iam_policy" "raw_job_role_policy" {
     region                  = data.aws_region.current.name
     resource-arn            = "arn:aws:s3:::stg-dlk-sbx-ds-6-raw" # was: aws_s3_bucket.bucket.arn
     ext-resource-arn        = "arn:aws:s3:::${local.ext_bucket_name}"
-    raw_db_name             = local.database_name
+    raw_db_name             = local.raw_database_name
     refined_db_name         = "stg-dlk-sbx-ds${var.datasource_number}-refined-db"
     kms_key_arn             = local.kms_key_arn 
     docebo_api_secret_name  = local.docebo_api_secret_name
@@ -67,38 +68,39 @@ resource "aws_iam_role_policy_attachment" "raw_role_policy_attachment" {
   policy_arn = aws_iam_policy.raw_job_role_policy.arn
 }
 
-# resource "aws_lakeformation_resource" "data_location" {
-#   arn      = aws_s3_bucket.bucket.arn
-#   role_arn = aws_iam_role.role.arn
+# resource "aws_lakeformation_resource" "raw_data_location" {
+#   arn      = aws_s3_bucket.raw_bucket.arn
+#   role_arn = aws_iam_role.raw_job_role.arn
 # }
 
-# resource "aws_glue_catalog_database" "glue_database" {
-#   name         = local.database_name
+# resource "aws_glue_catalog_database" "raw_glue_database" {
+#   name         = local.raw_database_name
 #   description  = "Glue catalog db for ${local.datasource} raw zone."
 #   location_uri = "s3://${local.raw_bucket_name}"
 # }
 
-# resource "aws_lakeformation_permissions" "database_permissions" {
-#   principal   = aws_iam_role.role.arn
-#   permissions = ["CREATE_TABLE", "DESCRIBE"]
-#   database {
-#     name = aws_glue_catalog_database.glue_database.name
-#   }
-# }
+resource "aws_lakeformation_permissions" "raw_database_permissions" {
+  principal   = aws_iam_role.raw_job_role.arn
+  permissions = ["CREATE_TABLE", "DESCRIBE"]
+  database {
+    name = local.raw_database_name
+  }
+}
 
-# resource "aws_lakeformation_permissions" "tables_permissions" {
-#   principal   = aws_iam_role.role.arn
-#   permissions = ["ALL"]
-#   table {
-#     database_name = aws_glue_catalog_database.glue_database.name
-#     wildcard      = true
-#   }
-# }
+resource "aws_lakeformation_permissions" "raw_tables_permissions" {
+  principal   = aws_iam_role.raw_job_role.arn
+  permissions = ["ALL"]
+  table {
+    database_name = local.raw_database_name
+    wildcard      = true
+  }
+}
+
 
 # # Not sure if it's better to use Athena SQL to create external tables here...
 # resource "aws_glue_catalog_table" "users_csv_gzip" {
 #   name                      = "users_csv_gzip"
-#   database_name             = local.database_name
+#   database_name             = local.raw_database_name
 #   table_type                = "EXTERNAL_TABLE"
 #   parameters                = { "EXTERNAL" = "TRUE" }
 #   storage_descriptor {
@@ -251,7 +253,7 @@ resource "aws_iam_policy" "refined_job_role_policy" {
     region                  = data.aws_region.current.name
     resource-arn            = "arn:aws:s3:::stg-dlk-sbx-ds-6-raw" # was: aws_s3_bucket.bucket.arn
     ext-resource-arn        = "arn:aws:s3:::${local.ext_bucket_name}"
-    raw_db_name             = local.database_name
+    raw_db_name             = local.raw_database_name
     refined_db_name         = "stg-dlk-sbx-ds${var.datasource_number}-refined-db"
     kms_key_arn             = local.kms_key_arn 
     docebo_api_secret_name  = local.docebo_api_secret_name
@@ -262,6 +264,24 @@ resource "aws_iam_policy" "refined_job_role_policy" {
 resource "aws_iam_role_policy_attachment" "refiend_role_policy_attachment" {
   role       = aws_iam_role.refined_job_role.name
   policy_arn = aws_iam_policy.refined_job_role_policy.arn
+}
+
+
+resource "aws_lakeformation_permissions" "raw_refined_database_permissions" {
+  principal   = aws_iam_role.refined_job_role.arn
+  permissions = ["CREATE_TABLE", "DESCRIBE"]
+  database {
+    name = local.raw_database_name
+  }
+}
+
+resource "aws_lakeformation_permissions" "raw_refined_tables_permissions" {
+  principal   = aws_iam_role.refined_job_role.arn
+  permissions = ["ALL"]
+  table {
+    database_name = local.raw_database_name
+    wildcard      = true
+  }
 }
 
 resource "aws_s3_object" "refined_glue_job_script" {
