@@ -120,34 +120,39 @@ def process_arguments(options) -> Dict[str, str]:
     return args
 
 
-def execute_s3_sql_files_athena(logger, environment):
+def execute_s3_sql_files_athena(workflow_name: str, workflow_run_id: str, job_name: str, job_run_id: str):
     '''Reads files from S3'''
 
-    if environment == 'vscode':
-        vscode_session = boto3.Session(
-            region_name=AWS_REGION, profile_name=AWS_PROFILE)
-        s3_client = vscode_session.client(service_name='s3')
-    else:
-        glue_session = boto3.Session()
-        s3_client = glue_session.client('s3')
+    # if environment == 'vscode':
+    #     vscode_session = boto3.Session(
+    #         region_name=AWS_REGION, profile_name=AWS_PROFILE)
+    #     s3_client = vscode_session.client(service_name='s3')
+    # else:
+    glue_session = boto3.Session()
+    s3_client = glue_session.client('s3')
 
     s3 = boto3.resource('s3')
-    s3_bucket = s3.Bucket(AWS_BUCKET)
-    logger.info('AWS_BUCKET: \n%s', AWS_BUCKET)
-    logger.info('AWS_FOLDER: \n%s', AWS_FOLDER)
-    for sqlfile in s3_bucket.objects.filter(Prefix=AWS_FOLDER):
+    s3_bucket = s3.Bucket(SQL_QUERIES_BUCKET)
+
+    # Logs SQL_QUERIES_BUCKET.SQL_QUERIES_FOLDER
+    log(workflow_name=workflow_name, workflow_run_id=workflow_run_id, job_name=job_name,
+            job_run_id=str(job_run_id), str_message=f'SQL_QUERIES_BUCKET/SQL_QUERIES_FOLDER: {SQL_QUERIES_BUCKET}/{SQL_QUERIES_FOLDER}')
+
+    for sqlfile in s3_bucket.objects.filter(Prefix=SQL_QUERIES_FOLDER):
         if sqlfile.key.endswith('sql'):
-            s3_file = s3_client.get_object(Bucket=AWS_BUCKET, Key=sqlfile.key)
+            s3_file = s3_client.get_object(Bucket=SQL_QUERIES_BUCKET, Key=sqlfile.key)
             querystring = (s3_file['Body'].read().decode('utf-8'))
 
-            # --if environment == 'sandbox':
-            time.sleep(LOG_DELAY)
-            logger.info('Running Query: \n%s', querystring)
-
+            log(workflow_name=workflow_name, workflow_run_id=workflow_run_id, job_name=job_name,
+                job_run_id=str(job_run_id), str_message=f'Running Query:\n{querystring}')
             df = wr.athena.read_sql_query(sql=querystring, database=AWS_ATHENA_DATABASE, ctas_approach=False, s3_output=AWS_ATHENA_OUPUT)
-            logger.info(f'Filename: {sqlfile.key:90} - Returned rows: {df.shape[0]:4}')
+
+            log(workflow_name=workflow_name, workflow_run_id=workflow_run_id, job_name=job_name,
+                job_run_id=str(job_run_id), str_message=f'Filename: {{sqlfile.key}} - Returned rows: {df.shape[0]:4}')
+
             if df.shape[0] > 0:
-                logger.info('\n' + tabulate(df, headers=df.keys(), tablefmt='psql', showindex=False))
+                log(workflow_name=workflow_name, workflow_run_id=workflow_run_id, job_name=job_name,
+                    job_run_id=str(job_run_id), str_message='\n' + tabulate(df, headers=df.keys(), tablefmt='psql', showindex=False))
 
 
 def log_environment():
