@@ -148,7 +148,7 @@ def execute_s3_sql_files_athena(workflow_name: str, workflow_run_id: str, job_na
             df = wr.athena.read_sql_query(sql=querystring, database=AWS_ATHENA_DATABASE, ctas_approach=False, s3_output=AWS_ATHENA_OUPUT)
 
             log(workflow_name=workflow_name, workflow_run_id=workflow_run_id, job_name=job_name,
-                job_run_id=str(job_run_id), str_message=f'Filename: {{sqlfile.key}} - Returned rows: {df.shape[0]:4}')
+                job_run_id=str(job_run_id), str_message=f'Filename: {sqlfile.key} - Returned rows: {df.shape[0]:4}')
 
             if df.shape[0] > 0:
                 log(workflow_name=workflow_name, workflow_run_id=workflow_run_id, job_name=job_name,

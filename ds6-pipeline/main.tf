@@ -232,3 +232,21 @@ resource "aws_sns_topic_subscription" "failure_email" {
   protocol  = "email"  
   endpoint  = "davide.moraschi@straumann.com"
 }
+
+# ===========================================================================================================================
+# Refined zone
+# ===========================================================================================================================
+
+resource "aws_s3_object" "sql_job_script_001" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/sql/001. DROP TABLE dlk-reportid_74.sql"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/001. DROP TABLE dlk-reportid_74.sql"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/001. DROP TABLE dlk-reportid_74.sql")
+}
+
+resource "aws_s3_object" "sql_job_script_002" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/sql/002. CREATE TABLE dlk-reportid_74.sql"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/002. CREATE TABLE dlk-reportid_74.sql"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/002. CREATE TABLE dlk-reportid_74.sql")
+}

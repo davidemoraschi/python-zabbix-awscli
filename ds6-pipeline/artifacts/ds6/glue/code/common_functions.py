@@ -17,7 +17,7 @@ import boto3
 import awswrangler as wr
 from tabulate import tabulate
 from awsglue.utils import getResolvedOptions  # type: ignore
-from config import AWS_REGION, AWS_BUCKET, AWS_FOLDER, AWS_ATHENA_DATABASE, AWS_ATHENA_OUPUT, AWS_PROFILE, S3_BUCKET, S3_PATH, SNS_FAILURE_TOPIC
+from config import AWS_REGION, AWS_BUCKET, AWS_FOLDER, AWS_ATHENA_DATABASE, AWS_ATHENA_OUPUT, AWS_PROFILE, S3_BUCKET, SQL_QUERIES_BUCKET, SQL_QUERIES_FOLDER, S3_PATH, SNS_FAILURE_TOPIC
 from functools import lru_cache
 
 LOG_DELAY = 50/1000
@@ -148,7 +148,7 @@ def execute_s3_sql_files_athena(workflow_name: str, workflow_run_id: str, job_na
             df = wr.athena.read_sql_query(sql=querystring, database=AWS_ATHENA_DATABASE, ctas_approach=False, s3_output=AWS_ATHENA_OUPUT)
 
             log(workflow_name=workflow_name, workflow_run_id=workflow_run_id, job_name=job_name,
-                job_run_id=str(job_run_id), str_message=f'Filename: {{sqlfile.key}} - Returned rows: {df.shape[0]:4}')
+                job_run_id=str(job_run_id), str_message=f'Filename: {sqlfile.key} - Returned rows: {df.shape[0]:4}')
 
             if df.shape[0] > 0:
                 log(workflow_name=workflow_name, workflow_run_id=workflow_run_id, job_name=job_name,
