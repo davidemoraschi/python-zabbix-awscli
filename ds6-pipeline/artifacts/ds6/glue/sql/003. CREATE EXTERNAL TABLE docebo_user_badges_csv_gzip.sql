@@ -1,6 +1,6 @@
 CREATE EXTERNAL TABLE IF NOT EXISTS `stg-dlk-sbx-ds6-raw-db`.docebo_user_badges_csv_gzip 
     (
-        `Username`                                             string
+         `Username`                                            string
         ,`Account code`                                        string
         ,`Aligner Experience Level`                            string
         ,`Are you a Speaker Mentor or KOL for ClearCorrect`    string

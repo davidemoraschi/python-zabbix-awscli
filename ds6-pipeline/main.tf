@@ -338,6 +338,27 @@ resource "aws_s3_object" "sql_job_script_004" {
   source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/004. CREATE EXTERNAL TABLE docebo_user_session_csv_gzip.sql")
 }
 
+resource "aws_s3_object" "sql_job_script_005" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/sql/005. CREATE EXTERNAL TABLE docebo_users_certifications_csv_gzip.sql"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/005. CREATE EXTERNAL TABLE docebo_users_certifications_csv_gzip.sql"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/005. CREATE EXTERNAL TABLE docebo_users_certifications_csv_gzip.sql")
+}
+
+resource "aws_s3_object" "sql_job_script_006" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/sql/006. CREATE EXTERNAL TABLE docebo_users_courses_csv_gzip.sql"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/006. CREATE EXTERNAL TABLE docebo_users_courses_csv_gzip.sql"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/006. CREATE EXTERNAL TABLE docebo_users_courses_csv_gzip.sql")
+}
+
+resource "aws_s3_object" "sql_job_script_007" {
+  bucket      = local.artifacts_bucket_name
+  key         = "artifacts/glue_job_${local.datasource}/sql/007. CREATE EXTERNAL TABLE docebo_users_learning_plans_csv_gzip.sql"
+  source      = "${path.module}/artifacts/ds${var.datasource_number}/glue/sql/007. CREATE EXTERNAL TABLE docebo_users_learning_plans_csv_gzip.sql"
+  source_hash = filemd5("${path.module}/artifacts/ds${var.datasource_number}/glue/sql/007. CREATE EXTERNAL TABLE docebo_users_learning_plans_csv_gzip.sql")
+}
+
 resource "aws_s3_object" "sql_job_script_021" {
   bucket      = local.artifacts_bucket_name
   key         = "artifacts/glue_job_${local.datasource}/sql/021. DROP TABLE dlk-reportid_74.sql"
