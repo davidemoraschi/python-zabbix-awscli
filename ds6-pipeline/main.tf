@@ -416,3 +416,19 @@ resource "aws_glue_job" "refined_glue_job" {
     Project                              = "stg-dlk"
   }
 }
+
+resource "aws_glue_trigger" "raw_to_refined_pipeline_trigger" {
+  name                  = "ds${var.datasource_number}_raw_to_refined_trigger"
+  type                  = "CONDITIONAL"
+  workflow_name         = aws_glue_workflow.pipeline.name
+  actions {
+    job_name            = aws_glue_job.refined_glue_job.name
+    timeout             = 15  
+  }
+  predicate {
+    conditions {
+      job_name = aws_glue_job.raw_glue_job.name
+      state    = "SUCCEEDED"
+    }
+  }
+}
