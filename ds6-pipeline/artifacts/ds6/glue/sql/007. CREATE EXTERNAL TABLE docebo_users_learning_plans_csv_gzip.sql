@@ -89,5 +89,5 @@ ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
 WITH SERDEPROPERTIES 
 ('separatorChar' = ',', 'quoteChar' = '"', 'escapeChar' = '\\')
 LOCATION 's3://stg-dlk-sbx-ds-6-raw/docebo_feed/Users_Learning_Plans'
-TBLPROPERTIES ('skip.header.line.count' = '1')
+TBLPROPERTIES ('skip.header.line.count' = '1', 'classification'='csv')
 ;
