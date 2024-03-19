@@ -30,3 +30,4 @@ workspace/Marcom_Galileo_Data_Pipeline_Users_-_Test.csv
 .vs/python-zabbix-utils/FileContentIndex/read.lock
 .gitignore
 *.vsidx
+gigya-python-sdk-3.3.6/credentialCDC.json
