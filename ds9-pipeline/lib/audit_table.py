@@ -122,7 +122,7 @@ class AuditSearch:
         """
 
         # split one day into 5 chunks
-        step = ((end - start).days +1)* 5
+        step = ((end - start).days + 1) * 5
 
         dayArray = self.commonFuncs.datetime_split(
             self.commonFuncs.datetime2str(start),
@@ -154,6 +154,7 @@ class AuditSearch:
         elif isinstance(self.locationObj, GcpConnector):  # google bucket
             self.locationObj.write_df_to_gcp(FormattedLogFilePath, dfFormattedlog)
 
+
 def set_input():
     '''use argparse package to set the input arguments: start, end'''
     parser = argparse.ArgumentParser()
@@ -161,7 +162,6 @@ def set_input():
     end = datetime.datetime.now(datetime.timezone.utc)
     end = end.isoformat(
         timespec="milliseconds").replace("+00:00", "Z")
-
 
     parser.add_argument("start", nargs="?", type=str, default=start,
                         help="start timestamp, like '2021-02-26T10:35:26.135Z' ")
@@ -175,10 +175,10 @@ def set_input():
 
 
 def main():
-    #get start and end tiemstamp from command line
+    # get start and end tiemstamp from command line
     start, end = set_input()
 
-    #credential, URL and query parameters to connect CDC
+    # credential, URL and query parameters to connect CDC
     credentialFileCDC = "credentialCDC.json"
     auditTable = AuditSearch(credentialFileCDC, start, end)
 
@@ -193,6 +193,7 @@ def main():
     # auditTable.set_save_location("local")
 
     auditTable.query_CDC()
+
 
 if __name__ == "__main__":
     main()
