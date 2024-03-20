@@ -1,0 +1,58 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Deny",
+            "Principal": "*",
+            "Action": "s3:PutBucketWebsite",
+            "Resource": "${resource-arn}"
+        },
+        {
+            "Effect": "Deny",
+            "Principal": "*",
+            "Action": "s3:*",
+            "Resource": "${resource-arn}/*",
+            "Condition": {
+                "Bool": {
+                    "aws:SecureTransport": "false"
+                }
+            }
+        },
+        {
+            "Principal": {
+                "Service": [
+                    "cloudtrail.amazonaws.com",
+                    "config.amazonaws.com"
+                ]
+            },
+            "Action": [
+                "s3:GetBucketAcl"
+            ],
+            "Resource": [
+                "${resource-arn}"
+            ],
+            "Effect": "Allow",
+            "Condition": {}
+        },
+        {
+            "Principal": {
+                "Service": [
+                    "cloudtrail.amazonaws.com",
+                    "config.amazonaws.com"
+                ]
+            },
+            "Action": [
+                "s3:PutObject"
+            ],
+            "Resource": [
+                "${resource-arn}/*"
+            ],
+            "Effect": "Allow",
+            "Condition": {
+                "StringEquals": {
+                    "s3:x-amz-acl": "bucket-owner-full-control"
+                }
+            }
+        }
+    ]
+}
