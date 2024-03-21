@@ -72,10 +72,10 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "raw_bucket_encryp
 resource "aws_s3_bucket_lifecycle_configuration" "raw_bucket_lifecycle" {
   bucket = aws_s3_bucket.raw_bucket.id 
   rule {
-    id = "expire-after-365-days"
+    id = "expire-after-10-years"
     filter {}
     expiration {
-      days = 365
+      days = abs(365 * 10)
     }
     status = "Enabled"
   }
@@ -140,11 +140,11 @@ resource "aws_s3_bucket_lifecycle_configuration" "raw_bucket_lifecycle" {
 #   role_arn = aws_iam_role.raw_job_role.arn
 # }
 
-# resource "aws_glue_catalog_database" "raw_glue_database" {
-#   name         = local.raw_database_name
-#   description  = "Glue catalog db for ${local.datasource} raw zone."
-#   location_uri = "s3://${local.raw_bucket_name}"
-# }
+resource "aws_glue_catalog_database" "raw_glue_database" {
+  name         = local.raw_database_name
+  description  = "Glue catalog db for ${local.datasource} raw zone."
+  location_uri = "s3://${local.raw_bucket_name}"
+}
 
 # resource "aws_lakeformation_permissions" "raw_database_permissions" {
 #   principal   = aws_iam_role.raw_job_role.arn
