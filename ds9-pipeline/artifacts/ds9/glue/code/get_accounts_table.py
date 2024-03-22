@@ -1,6 +1,6 @@
 #!/usr/bin/python
 '''
-Testing the SAP CDC API to get the audit logs
+Testing the SAP CDC API to get the accounts
 '''
 
 import json
@@ -44,7 +44,7 @@ def get_secret() -> Dict[str, str]:
 
 
 creds: Dict[str, str] = json.loads(s=get_secret())  # type: ignore
-BASEURL = creds['audit.search']['URL']              # type: ignore
+BASEURL = creds['account.search']['URL']            # type: ignore
 
 
 def get_headers() -> Dict[str, str]:
@@ -99,9 +99,7 @@ def main():
 
         else:
             params['openCursor'] = True                    # type: ignore
-            params['query'] = f"SELECT * FROM auditLog \
-                                WHERE (@timestamp >= '2024-03-20T00:00:00.000Z' and @timestamp < '2024-03-20T06:00:00.000Z')\
-                                LIMIT {ROWLIMIT}"
+            params['query'] = f"SELECT * FROM accounts WHERE lastUpdatedTimestamp >= 1710979200000 LIMIT {ROWLIMIT}" #  1711065600000
 
         # Make API request
         response: requests.Response = requests.post(url=BASEURL, headers=headers, params=params)
