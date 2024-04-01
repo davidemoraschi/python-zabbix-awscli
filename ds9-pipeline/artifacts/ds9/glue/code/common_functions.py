@@ -113,7 +113,7 @@ def log(workflow_name: str, workflow_run_id: str, job_name: str, job_run_id: str
                                                             params={
                                                                 "float_latest_epoch": float_latest_epoch,
                                                                 "str_glue_workflow_name": f"'{workflow_name}'",
-                                                                "int_glue_workflow_runid": workflow_run_id,
+                                                                "int_glue_workflow_runid": f"'{workflow_run_id}'",
                                                                 "str_glue_job_name": "'job_name_python'",
                                                                 "int_glue_job_runid": job_run_id,
                                                                 "str_glue_job_step": f"'{str_message}'",
@@ -133,20 +133,6 @@ def get_last_loaded_epoch() -> float:
 
     # print(df)
     return float(df['last_loaded_epoch'][0])
-
-    # get_query_execution:dict = wr.athena.start_query_execution(sql=sql_query,
-    #                                                         database=database_name,
-    #                                                         params={
-    #                                                             "float_latest_epoch": float_latest_epoch,
-    #                                                             "str_glue_workflow_name": f"'{workflow_name}'",
-    #                                                             "int_glue_workflow_runid": workflow_run_id,
-    #                                                             "str_glue_job_name": "'job_name_python'",
-    #                                                             "int_glue_job_runid": job_run_id,
-    #                                                             "str_glue_job_step": f"'{str_message}'",
-    #                                                             "bigint_rows_retrieved": bigint_rows_retrieved,
-    #                                                             "str_error_message": "''"
-    #                                                         },
-    #                                                         wait=True)
 
 
 @lru_cache(maxsize=None)

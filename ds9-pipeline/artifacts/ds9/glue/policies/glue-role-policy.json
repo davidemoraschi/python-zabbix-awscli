@@ -13,7 +13,8 @@
 		{
 			"Action": [
 				"glue:GetDatabase",
-				"glue:GetTable"
+				"glue:GetTable",
+				"glue:UpdateTable"
 			],
 			"Effect": "Allow",
 			"Resource": [

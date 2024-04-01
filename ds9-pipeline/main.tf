@@ -329,23 +329,24 @@ resource "aws_glue_job" "raw_glue_job" {
 # # but Step Funcions are a bad beast to debug. Eventually it is better to use a loop inside the Glue Job
 # # and pass the event types in an array
  
-# resource "aws_glue_workflow" "pipeline" {
-#   name = "ds${var.datasource_number}_pipeline"
-#   max_concurrent_runs = 1
-# }
+resource "aws_glue_workflow" "pipeline" {
+  name = "ds${var.datasource_number}_pipeline"
+  max_concurrent_runs = 1
+}
 
-# resource "aws_glue_trigger" "source_to_raw_pipeline_trigger" {
-#   name                  = "ds${var.datasource_number}_pipeline_schedule"
-#   schedule              = "cron(0 4 ? * MON-FRI *)"  #cron(Minutes Hours Day-of-month Month Day-of-week Year)
-#   type                  = "SCHEDULED"
-#   workflow_name         = aws_glue_workflow.pipeline.name
-#   actions {
-#     job_name            = aws_glue_job.raw_glue_job.name
-#     timeout             = 15  
-#     arguments           = {
-#         "--EVENT_TYPES" = "[\"PAGE_VIEW\",\"BIOMATERIAL_STATE_UPDATE\",\"BIOMATERIAL_MILESTONE_UPDATE\"]"}
-#   }
-# }
+resource "aws_glue_trigger" "source_to_raw_pipeline_trigger" {
+  name                  = "ds${var.datasource_number}_pipeline_schedule"
+  schedule              = "cron(0 */2 ? * MON-FRI *)"  #cron(Minutes Hours Day-of-month Month Day-of-week Year)
+  type                  = "SCHEDULED"
+  workflow_name         = aws_glue_workflow.pipeline.name
+  actions {
+    job_name            = aws_glue_job.raw_glue_job.name
+    timeout             = 15  
+    arguments           = {
+        "--EVENT_TYPES" = "[\"PAGE_VIEW\",\"BIOMATERIAL_STATE_UPDATE\",\"BIOMATERIAL_MILESTONE_UPDATE\"]"
+    }
+  }
+}
 
 # # Add a SNS topic for notifications about GLue Workflow failures
 # resource "aws_sns_topic" "failure_topic" {
