@@ -11,7 +11,7 @@ from tabulate import tabulate
 from botocore.exceptions import ClientError
 from typing import Dict
 from gzip_s3_and_json_py3 import upload_json_gz
-from common_functions import log, process_arguments
+from common_functions import get_last_loaded_epoch, log, process_arguments
 from config import S3_DESTINATION_BUCKET, S3_DESTINATION_PATH, AWS_SECRET_NAME, AWS_REGION
 import requests
 import jq
@@ -93,6 +93,21 @@ def get_params() -> Dict[str, str]:
     return params
 
 
+def get_latest_epoch() -> float:
+    '''
+    Returns the latest epoch timestamp from the audit table
+    '''
+    headers: Dict[str, str] = get_headers()
+    params: Dict[str, str] = get_params()
+    # I know the ORDER BY here is an aberration, but without it the API returns NULL, so complain to SAP
+    params['query'] = "SELECT max(@timestamp) AS latest_epoch FROM auditLog ORDER BY @timestamp DESC"
+
+    response: requests.Response = requests.post(url=BASEURL, headers=headers, params=params)
+    response.raise_for_status()
+    payload: Dict[str, str] = json.loads(response.text)
+    return payload['results'][0]['latest_epoch']   
+
+
 def main():
     '''
     Main function that executes the script.
@@ -103,6 +118,9 @@ def main():
     objectscount: int = 0
     if os.path.exists('payload.json'):
         os.remove('payload.json')
+
+    latest_epoch:float = get_latest_epoch()
+    last_loaded_epoch:float = get_last_loaded_epoch()
 
     while True:
 
@@ -116,7 +134,7 @@ def main():
         else:
             params['openCursor'] = True                    # type: ignore
             params['query'] = f"SELECT * FROM auditLog \
-                                WHERE (@timestamp >= '2024-03-20T05:00:00.000Z' and @timestamp < '2024-03-20T06:00:00.000Z')\
+                                WHERE (@timestamp > {last_loaded_epoch} and @timestamp <= {latest_epoch})\
                                 LIMIT {ROWLIMIT}"
 
         # Make API request
@@ -156,7 +174,7 @@ def main():
                    key=f'{S3_DESTINATION_PATH}{JOB_RUN_ID}.json.gz', obj=jsonl)
 
     log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
-        job_run_id=str(JOB_RUN_ID), str_message=f'Uploading file: {JOB_RUN_ID}.json.gz', bigint_rows_retrieved=objectscount)
+        job_run_id=str(JOB_RUN_ID), str_message=f'Uploading file: {JOB_RUN_ID}.json.gz', bigint_rows_retrieved=objectscount, float_latest_epoch=latest_epoch)
 
 
 if __name__ == "__main__":

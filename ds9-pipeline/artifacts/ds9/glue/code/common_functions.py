@@ -96,21 +96,22 @@ logging.config.dictConfig(config=default_logging_config(level='DEBUG'))
 glue_job_logger: logging.Logger = logging.getLogger(name='job')
 
 
-def log(workflow_name: str, workflow_run_id: str, job_name: str, job_run_id: str, str_message: str, bigint_rows_retrieved: int) -> None:
+def log(workflow_name: str, workflow_run_id: str, job_name: str, job_run_id: str, str_message: str, bigint_rows_retrieved: int, float_latest_epoch: float) -> None:
     '''Writes to the job log file and to the Athena _etl_log table'''
 
     time.sleep(LOG_DELAY)
     glue_job_logger.info(msg=f'WORKFLOW_NAME.WORKFLOW_RUN_ID|JOB_NAME.JOB_RUN_ID: {workflow_name}.{workflow_run_id}|{job_name}.{job_run_id}|{str_message}')
 
     database_name:str = AWS_ATHENA_DATABASE
-    sql_query:str = f'''INSERT INTO {AWS_ATHENA_LOG_TABLE}(bigint_epoch_ts_log,str_glue_workflow_name,int_glue_workflow_runid,
+    sql_query:str = f'''INSERT INTO {AWS_ATHENA_LOG_TABLE}(double_epoch_ts_log,str_glue_workflow_name,int_glue_workflow_runid,
                             str_glue_job_name,int_glue_job_runid,str_glue_job_step,bigint_rows_retrieved,str_error_message) 
-                        VALUES(to_unixtime(current_timestamp),:str_glue_workflow_name;,:int_glue_workflow_runid;,
+                        VALUES(:float_latest_epoch;,:str_glue_workflow_name;,:int_glue_workflow_runid;,
                             :str_glue_job_name;,:int_glue_job_runid;,:str_glue_job_step;,:bigint_rows_retrieved;,:str_error_message;)'''
 
     get_query_execution:dict = wr.athena.start_query_execution(sql=sql_query,
                                                             database=database_name,
                                                             params={
+                                                                "float_latest_epoch": float_latest_epoch,
                                                                 "str_glue_workflow_name": f"'{workflow_name}'",
                                                                 "int_glue_workflow_runid": workflow_run_id,
                                                                 "str_glue_job_name": "'job_name_python'",
@@ -122,6 +123,30 @@ def log(workflow_name: str, workflow_run_id: str, job_name: str, job_run_id: str
                                                             wait=True)
 
     # print(f'{get_query_execution["Status"]["State"]} in {get_query_execution["Statistics"]["TotalExecutionTimeInMillis"]}ms')
+
+
+def get_last_loaded_epoch() -> float:
+    database_name:str = AWS_ATHENA_DATABASE
+    sql_query:str = f'''SELECT MAX(double_epoch_ts_log) AS last_loaded_epoch FROM {AWS_ATHENA_LOG_TABLE}'''
+
+    df = wr.athena.read_sql_query(sql=sql_query, database=database_name, ctas_approach=False, s3_output=AWS_ATHENA_OUPUT)
+
+    # print(df)
+    return float(df['last_loaded_epoch'][0])
+
+    # get_query_execution:dict = wr.athena.start_query_execution(sql=sql_query,
+    #                                                         database=database_name,
+    #                                                         params={
+    #                                                             "float_latest_epoch": float_latest_epoch,
+    #                                                             "str_glue_workflow_name": f"'{workflow_name}'",
+    #                                                             "int_glue_workflow_runid": workflow_run_id,
+    #                                                             "str_glue_job_name": "'job_name_python'",
+    #                                                             "int_glue_job_runid": job_run_id,
+    #                                                             "str_glue_job_step": f"'{str_message}'",
+    #                                                             "bigint_rows_retrieved": bigint_rows_retrieved,
+    #                                                             "str_error_message": "''"
+    #                                                         },
+    #                                                         wait=True)
 
 
 @lru_cache(maxsize=None)
