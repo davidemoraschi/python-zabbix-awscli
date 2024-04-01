@@ -7,12 +7,28 @@ import json
 import os
 import time
 import boto3
+from tabulate import tabulate
 from botocore.exceptions import ClientError
 from typing import Dict
 from gzip_s3_and_json_py3 import upload_json_gz
+from common_functions import log, process_arguments
 from config import S3_DESTINATION_BUCKET, S3_DESTINATION_PATH, AWS_SECRET_NAME, AWS_REGION
 import requests
 import jq
+from typing import Dict, List
+
+# Process command line arguments
+args: Dict[str, str] = process_arguments(options=['WORKFLOW_NAME', 'WORKFLOW_RUN_ID'])
+
+# Print arguments for debugging
+print(tabulate(tabular_data=args.items(), headers=['args.keys()', 'args.values()'], tablefmt='psql', showindex=False))
+
+# Parse report IDs, workflow name, EVENT_TYPES, and job name from arguments
+WORKFLOW_NAME: str = args['WORKFLOW_NAME']
+WORKFLOW_RUN_ID: str = args['WORKFLOW_RUN_ID']
+JOB_NAME: str = args['JOB_NAME'] if 'JOB_NAME' in args else 'stg-dlk-sbx-ds14-job-source-to-raw'
+JOB_RUN_ID: int = int(time.time())
+
 
 TIMEOUT = 60000
 ROWLIMIT = 10000
@@ -100,7 +116,7 @@ def main():
         else:
             params['openCursor'] = True                    # type: ignore
             params['query'] = f"SELECT * FROM auditLog \
-                                WHERE (@timestamp >= '2024-03-20T00:00:00.000Z' and @timestamp < '2024-03-20T06:00:00.000Z')\
+                                WHERE (@timestamp >= '2024-03-20T05:00:00.000Z' and @timestamp < '2024-03-20T06:00:00.000Z')\
                                 LIMIT {ROWLIMIT}"
 
         # Make API request
@@ -111,7 +127,7 @@ def main():
         payload = json.loads(response.text)
 
         objectscount += payload['objectsCount']
-        print(objectscount)
+        # print(objectscount)
 
         with open('payload.json', 'a') as file:
             jsonl = jq.compile(".[]").input_value(payload['results']).text()
@@ -138,6 +154,10 @@ def main():
     # Uploads to S3 raw bucket/folder
     upload_json_gz(s3client=s3_client, bucket=S3_DESTINATION_BUCKET,
                    key=f'{S3_DESTINATION_PATH}{JOB_RUN_ID}.json.gz', obj=jsonl)
+
+    log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
+        job_run_id=str(JOB_RUN_ID), str_message=f'Uploading file: {JOB_RUN_ID}.json.gz', bigint_rows_retrieved=objectscount)
+
 
 if __name__ == "__main__":
     main()

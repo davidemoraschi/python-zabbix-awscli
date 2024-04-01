@@ -17,7 +17,7 @@ import boto3
 import awswrangler as wr
 from tabulate import tabulate
 from awsglue.utils import getResolvedOptions  # type: ignore
-from config import AWS_REGION, AWS_BUCKET, AWS_FOLDER, AWS_ATHENA_DATABASE, AWS_ATHENA_OUPUT, AWS_PROFILE, S3_BUCKET, SQL_QUERIES_BUCKET, SQL_QUERIES_FOLDER, S3_PATH, SNS_FAILURE_TOPIC
+from config import AWS_REGION, AWS_BUCKET, AWS_FOLDER, AWS_ATHENA_DATABASE, AWS_ATHENA_OUPUT, AWS_ATHENA_LOG_TABLE, AWS_PROFILE, S3_BUCKET, SQL_QUERIES_BUCKET, SQL_QUERIES_FOLDER, S3_PATH, SNS_FAILURE_TOPIC
 from functools import lru_cache
 
 LOG_DELAY = 50/1000
@@ -96,11 +96,32 @@ logging.config.dictConfig(config=default_logging_config(level='DEBUG'))
 glue_job_logger: logging.Logger = logging.getLogger(name='job')
 
 
-def log(workflow_name: str, workflow_run_id: str, job_name: str, job_run_id: str, str_message: str) -> None:
-    '''Writes to the job log file'''
+def log(workflow_name: str, workflow_run_id: str, job_name: str, job_run_id: str, str_message: str, bigint_rows_retrieved: int) -> None:
+    '''Writes to the job log file and to the Athena _etl_log table'''
 
     time.sleep(LOG_DELAY)
     glue_job_logger.info(msg=f'WORKFLOW_NAME.WORKFLOW_RUN_ID|JOB_NAME.JOB_RUN_ID: {workflow_name}.{workflow_run_id}|{job_name}.{job_run_id}|{str_message}')
+
+    database_name:str = AWS_ATHENA_DATABASE
+    sql_query:str = f'''INSERT INTO {AWS_ATHENA_LOG_TABLE}(bigint_epoch_ts_log,str_glue_workflow_name,int_glue_workflow_runid,
+                            str_glue_job_name,int_glue_job_runid,str_glue_job_step,bigint_rows_retrieved,str_error_message) 
+                        VALUES(to_unixtime(current_timestamp),:str_glue_workflow_name;,:int_glue_workflow_runid;,
+                            :str_glue_job_name;,:int_glue_job_runid;,:str_glue_job_step;,:bigint_rows_retrieved;,:str_error_message;)'''
+
+    get_query_execution:dict = wr.athena.start_query_execution(sql=sql_query,
+                                                            database=database_name,
+                                                            params={
+                                                                "str_glue_workflow_name": f"'{workflow_name}'",
+                                                                "int_glue_workflow_runid": workflow_run_id,
+                                                                "str_glue_job_name": "'job_name_python'",
+                                                                "int_glue_job_runid": job_run_id,
+                                                                "str_glue_job_step": f"'{str_message}'",
+                                                                "bigint_rows_retrieved": bigint_rows_retrieved,
+                                                                "str_error_message": "''"
+                                                            },
+                                                            wait=True)
+
+    # print(f'{get_query_execution["Status"]["State"]} in {get_query_execution["Statistics"]["TotalExecutionTimeInMillis"]}ms')
 
 
 @lru_cache(maxsize=None)
