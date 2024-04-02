@@ -1,0 +1,318 @@
+{
+    "flowArn": "arn:aws:appflow:eu-west-1:816247855850:flow/SAP_MKTCloud_AWSWEBREGFORM_CDS_Full",
+    "description": "SAP_MKTCloud_AWSWEBREGFORM_CDS_Full",
+    "flowName": "SAP_MKTCloud_AWSWEBREGFORM_CDS_Full",
+    "kmsArn": "arn:aws:kms:eu-west-1:816247855850:key/396cd8ff-4b3d-4b17-9df4-9449185fdd2e",
+    "flowStatus": "Active",
+    "sourceFlowConfig": {
+        "connectorType": "SAPOData",
+        "connectorProfileName": "stg-dlk-sap-odata-marketing-connection",
+        "sourceConnectorProperties": {
+            "SAPOData": {
+                "objectPath": "/sap/opu/odata/sap/YY1_AWSWEBREGFORM_CDS/YY1_AWSWebRegForm",
+                "parallelismConfig": {
+                    "maxParallelism": 1
+                },
+                "paginationConfig": {
+                    "maxPageSize": 1000
+                }
+            }
+        }
+    },
+    "destinationFlowConfigList": [
+        {
+            "connectorType": "S3",
+            "destinationConnectorProperties": {
+                "S3": {
+                    "bucketName": "stg-dlk-sbx-ds-7-raw",
+                    "s3OutputFormatConfig": {
+                        "fileType": "PARQUET",
+                        "prefixConfig": {
+                            "prefixType": "PATH",
+                            "prefixFormat": "HOUR",
+                            "pathPrefixHierarchy": [
+                                "SCHEMA_VERSION",
+                                "EXECUTION_ID"
+                            ]
+                        },
+                        "aggregationConfig": {
+                            "aggregationType": "None"
+                        },
+                        "preserveSourceDataTyping": false
+                    }
+                }
+            }
+        }
+    ],
+    "lastRunExecutionDetails": {
+        "mostRecentExecutionTime": "2024-04-02T13:34:20.724000+02:00",
+        "mostRecentExecutionStatus": "Successful"
+    },
+    "triggerConfig": {
+        "triggerType": "OnDemand",
+        "triggerProperties": {}
+    },
+    "tasks": [
+        {
+            "sourceFields": [
+                "Interaction",
+                "InteractionContactOrigin",
+                "InteractionContactId",
+                "InteractionType",
+                "InteractionStatus",
+                "InteractionTimeStampUTC",
+                "CampaignID",
+                "InteractionSourceObject",
+                "MarketingArea",
+                "ContentPageFormID",
+                "ContentPageFormName",
+                "FullName",
+                "EmailAddress",
+                "PhoneNumber",
+                "InteractionContact"
+            ],
+            "connectorOperator": {
+                "SAPOData": "PROJECTION"
+            },
+            "taskType": "Filter",
+            "taskProperties": {}
+        },
+        {
+            "sourceFields": [
+                "Interaction"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "Interaction",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.Guid"
+            }
+        },
+        {
+            "sourceFields": [
+                "InteractionContactOrigin"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "InteractionContactOrigin",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "InteractionContactId"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "InteractionContactId",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "InteractionType"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "InteractionType",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "InteractionStatus"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "InteractionStatus",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "InteractionTimeStampUTC"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "InteractionTimeStampUTC",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "timestamp",
+                "SOURCE_DATA_TYPE": "datetime"
+            }
+        },
+        {
+            "sourceFields": [
+                "CampaignID"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "CampaignID",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "InteractionSourceObject"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "InteractionSourceObject",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "MarketingArea"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "MarketingArea",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "ContentPageFormID"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "ContentPageFormID",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "ContentPageFormName"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "ContentPageFormName",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "FullName"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "FullName",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "EmailAddress"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "EmailAddress",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "PhoneNumber"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "PhoneNumber",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "InteractionContact"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "InteractionContact",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.Guid"
+            }
+        }
+    ],
+    "createdAt": "2024-04-02T12:49:57.265000+02:00",
+    "lastUpdatedAt": "2024-04-02T13:03:38.356000+02:00",
+    "createdBy": "arn:aws:sts::816247855850:assumed-role/AWSReservedSSO_AdministratorAccess_e32122ea09a1e46b/u134859@STRAUMANN.COM",
+    "lastUpdatedBy": "arn:aws:sts::816247855850:assumed-role/AWSReservedSSO_AdministratorAccess_e32122ea09a1e46b/u134859@STRAUMANN.COM",
+    "tags": {
+        "Project": "stg-dlk",
+        "ManagedBy": "Terraform"
+    },
+    "metadataCatalogConfig": {
+        "glueDataCatalog": {
+            "roleArn": "arn:aws:iam::816247855850:role/stg-dlk-sbx-ds-7-appflow-glue-catalog-role",
+            "databaseName": "stg-dlk-sbx-ds7-raw-db",
+            "tablePrefix": "ds7"
+        }
+    },
+    "lastRunMetadataCatalogDetails": [
+        {
+            "catalogType": "GLUE",
+            "tableName": "ds7_appflow_sap_mktcloud_awswebregform_cds_full_1712055837_latest",
+            "tableRegistrationOutput": {
+                "message": "Scheme registration succeeded for GLUE",
+                "result": "Created: 2, Updated: 0",
+                "status": "Successful"
+            }
+        }
+    ],
+    "schemaVersion": 2
+}
