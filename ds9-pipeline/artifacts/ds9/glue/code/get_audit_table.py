@@ -145,14 +145,15 @@ def main():
         payload = json.loads(response.text)
 
         objectscount += payload['objectsCount']
-        # print(objectscount)
+        totalCount = payload['totalCount']
+        print(f'{objectscount} of {totalCount} rows')
 
         with open('payload.json', 'a') as file:
             jsonl = jq.compile(".[]").input_value(payload['results']).text()
             file.write(jsonl)
             
             # check if the end of the result
-            if ('nextCursorId' not in payload) or (payload['objectsCount']==payload['totalCount']):
+            if ('nextCursorId' not in payload) or (objectscount==payload['totalCount']):
                 # isSucceeded = True
                 # saveJSON.write(f"{json.dumps(tempOutput)[1:]}")
                 break

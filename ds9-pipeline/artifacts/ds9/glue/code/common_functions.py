@@ -103,9 +103,9 @@ def log(workflow_name: str, workflow_run_id: str, job_name: str, job_run_id: str
     glue_job_logger.info(msg=f'WORKFLOW_NAME.WORKFLOW_RUN_ID|JOB_NAME.JOB_RUN_ID: {workflow_name}.{workflow_run_id}|{job_name}.{job_run_id}|{str_message}')
 
     database_name:str = AWS_ATHENA_DATABASE
-    sql_query:str = f'''INSERT INTO {AWS_ATHENA_LOG_TABLE}(double_epoch_ts_log,str_glue_workflow_name,int_glue_workflow_runid,
+    sql_query:str = f'''INSERT INTO {AWS_ATHENA_LOG_TABLE}(double_epoch_ts_log,str_glue_workflow_name,str_glue_workflow_runid,
                             str_glue_job_name,int_glue_job_runid,str_glue_job_step,bigint_rows_retrieved,str_error_message) 
-                        VALUES(:float_latest_epoch;,:str_glue_workflow_name;,:int_glue_workflow_runid;,
+                        VALUES(:float_latest_epoch;,:str_glue_workflow_name;,:str_glue_workflow_runid;,
                             :str_glue_job_name;,:int_glue_job_runid;,:str_glue_job_step;,:bigint_rows_retrieved;,:str_error_message;)'''
 
     get_query_execution:dict = wr.athena.start_query_execution(sql=sql_query,
@@ -113,8 +113,8 @@ def log(workflow_name: str, workflow_run_id: str, job_name: str, job_run_id: str
                                                             params={
                                                                 "float_latest_epoch": float_latest_epoch,
                                                                 "str_glue_workflow_name": f"'{workflow_name}'",
-                                                                "int_glue_workflow_runid": f"'{workflow_run_id}'",
-                                                                "str_glue_job_name": "'job_name_python'",
+                                                                "str_glue_workflow_runid": f"'{workflow_run_id}'",
+                                                                "str_glue_job_name": f"'{job_name}'",
                                                                 "int_glue_job_runid": job_run_id,
                                                                 "str_glue_job_step": f"'{str_message}'",
                                                                 "bigint_rows_retrieved": bigint_rows_retrieved,
