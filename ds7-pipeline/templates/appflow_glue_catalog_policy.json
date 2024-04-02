@@ -1,0 +1,52 @@
+{
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "glue:BatchCreatePartition",
+          "glue:CreatePartitionIndex",
+          "glue:GetTableVersions",
+          "glue:GetPartitions",
+          "glue:BatchDeletePartition",
+          "glue:DeleteTableVersion",
+          "glue:DeleteTableVersion",
+          "glue:UpdateTable",
+          "glue:DeleteTable",
+          "glue:DeletePartitionIndex",
+          "glue:GetTableVersion",
+          "glue:CreatePartition",
+          "glue:UpdatePartition",
+          "glue:UpdateDatabase",
+          "glue:CreateTable",
+          "glue:BatchUpdatePartition",
+          "glue:GetTables",
+          "glue:BatchGetPartition",
+          "glue:GetPartitionIndexes",
+          "glue:GetTable",
+          "glue:GetPartition",
+          "glue:BatchDeleteTableVersion",
+          "glue:BatchDeleteTable",
+          "glue:DeletePartition"
+        ],
+        "Resource" : ["${glue_db}","${glue_table}","arn:aws:glue:${region}:${account_id}:catalog"]
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "glue:UntagResource",
+          "glue:TagResource"
+        ],
+        "Resource" : "*"
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:GenerateDataKey"
+        ],
+        "Resource" : "${kms_key_arn}"
+      }
+    ]
+}
