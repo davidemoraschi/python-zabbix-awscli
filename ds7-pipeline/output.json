@@ -45,7 +45,7 @@
         }
     ],
     "lastRunExecutionDetails": {
-        "mostRecentExecutionTime": "2024-04-02T13:34:20.724000+02:00",
+        "mostRecentExecutionTime": "2024-04-03T13:37:48.305000+02:00",
         "mostRecentExecutionStatus": "Successful"
     },
     "triggerConfig": {
@@ -55,20 +55,20 @@
     "tasks": [
         {
             "sourceFields": [
-                "Interaction",
-                "InteractionContactOrigin",
-                "InteractionContactId",
-                "InteractionType",
                 "InteractionStatus",
-                "InteractionTimeStampUTC",
+                "MarketingArea",
+                "FullName",
+                "InteractionType",
+                "ContentPageFormID",
+                "Interaction",
+                "InteractionContactId",
+                "InteractionContactOrigin",
                 "CampaignID",
                 "InteractionSourceObject",
-                "MarketingArea",
-                "ContentPageFormID",
-                "ContentPageFormName",
-                "FullName",
                 "EmailAddress",
                 "PhoneNumber",
+                "InteractionTimeStampUTC",
+                "ContentPageFormName",
                 "InteractionContact"
             ],
             "connectorOperator": {
@@ -79,26 +79,12 @@
         },
         {
             "sourceFields": [
-                "Interaction"
+                "InteractionStatus"
             ],
             "connectorOperator": {
                 "SAPOData": "NO_OP"
             },
-            "destinationField": "Interaction",
-            "taskType": "Map",
-            "taskProperties": {
-                "DESTINATION_DATA_TYPE": "string",
-                "SOURCE_DATA_TYPE": "Edm.Guid"
-            }
-        },
-        {
-            "sourceFields": [
-                "InteractionContactOrigin"
-            ],
-            "connectorOperator": {
-                "SAPOData": "NO_OP"
-            },
-            "destinationField": "InteractionContactOrigin",
+            "destinationField": "InteractionStatus",
             "taskType": "Map",
             "taskProperties": {
                 "DESTINATION_DATA_TYPE": "string",
@@ -107,12 +93,26 @@
         },
         {
             "sourceFields": [
-                "InteractionContactId"
+                "MarketingArea"
             ],
             "connectorOperator": {
                 "SAPOData": "NO_OP"
             },
-            "destinationField": "InteractionContactId",
+            "destinationField": "MarketingArea",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "FullName"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "FullName",
             "taskType": "Map",
             "taskProperties": {
                 "DESTINATION_DATA_TYPE": "string",
@@ -135,12 +135,12 @@
         },
         {
             "sourceFields": [
-                "InteractionStatus"
+                "ContentPageFormID"
             ],
             "connectorOperator": {
                 "SAPOData": "NO_OP"
             },
-            "destinationField": "InteractionStatus",
+            "destinationField": "ContentPageFormID",
             "taskType": "Map",
             "taskProperties": {
                 "DESTINATION_DATA_TYPE": "string",
@@ -149,16 +149,44 @@
         },
         {
             "sourceFields": [
-                "InteractionTimeStampUTC"
+                "Interaction"
             ],
             "connectorOperator": {
                 "SAPOData": "NO_OP"
             },
-            "destinationField": "InteractionTimeStampUTC",
+            "destinationField": "Interaction",
             "taskType": "Map",
             "taskProperties": {
-                "DESTINATION_DATA_TYPE": "timestamp",
-                "SOURCE_DATA_TYPE": "datetime"
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.Guid"
+            }
+        },
+        {
+            "sourceFields": [
+                "InteractionContactId"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "InteractionContactId",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "InteractionContactOrigin"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "InteractionContactOrigin",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.String"
             }
         },
         {
@@ -183,62 +211,6 @@
                 "SAPOData": "NO_OP"
             },
             "destinationField": "InteractionSourceObject",
-            "taskType": "Map",
-            "taskProperties": {
-                "DESTINATION_DATA_TYPE": "string",
-                "SOURCE_DATA_TYPE": "Edm.String"
-            }
-        },
-        {
-            "sourceFields": [
-                "MarketingArea"
-            ],
-            "connectorOperator": {
-                "SAPOData": "NO_OP"
-            },
-            "destinationField": "MarketingArea",
-            "taskType": "Map",
-            "taskProperties": {
-                "DESTINATION_DATA_TYPE": "string",
-                "SOURCE_DATA_TYPE": "Edm.String"
-            }
-        },
-        {
-            "sourceFields": [
-                "ContentPageFormID"
-            ],
-            "connectorOperator": {
-                "SAPOData": "NO_OP"
-            },
-            "destinationField": "ContentPageFormID",
-            "taskType": "Map",
-            "taskProperties": {
-                "DESTINATION_DATA_TYPE": "string",
-                "SOURCE_DATA_TYPE": "Edm.String"
-            }
-        },
-        {
-            "sourceFields": [
-                "ContentPageFormName"
-            ],
-            "connectorOperator": {
-                "SAPOData": "NO_OP"
-            },
-            "destinationField": "ContentPageFormName",
-            "taskType": "Map",
-            "taskProperties": {
-                "DESTINATION_DATA_TYPE": "string",
-                "SOURCE_DATA_TYPE": "Edm.String"
-            }
-        },
-        {
-            "sourceFields": [
-                "FullName"
-            ],
-            "connectorOperator": {
-                "SAPOData": "NO_OP"
-            },
-            "destinationField": "FullName",
             "taskType": "Map",
             "taskProperties": {
                 "DESTINATION_DATA_TYPE": "string",
@@ -275,6 +247,34 @@
         },
         {
             "sourceFields": [
+                "InteractionTimeStampUTC"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "InteractionTimeStampUTC",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "timestamp",
+                "SOURCE_DATA_TYPE": "datetime"
+            }
+        },
+        {
+            "sourceFields": [
+                "ContentPageFormName"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "ContentPageFormName",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "string",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
                 "InteractionContact"
             ],
             "connectorOperator": {
@@ -288,8 +288,8 @@
             }
         }
     ],
-    "createdAt": "2024-04-02T12:49:57.265000+02:00",
-    "lastUpdatedAt": "2024-04-02T13:03:38.356000+02:00",
+    "createdAt": "2024-04-03T13:06:18.163000+02:00",
+    "lastUpdatedAt": "2024-04-03T13:36:33.596000+02:00",
     "createdBy": "arn:aws:sts::816247855850:assumed-role/AWSReservedSSO_AdministratorAccess_e32122ea09a1e46b/u134859@STRAUMANN.COM",
     "lastUpdatedBy": "arn:aws:sts::816247855850:assumed-role/AWSReservedSSO_AdministratorAccess_e32122ea09a1e46b/u134859@STRAUMANN.COM",
     "tags": {
@@ -306,13 +306,13 @@
     "lastRunMetadataCatalogDetails": [
         {
             "catalogType": "GLUE",
-            "tableName": "ds7_appflow_sap_mktcloud_awswebregform_cds_full_1712055837_latest",
+            "tableName": "ds7_appflow_sap_mktcloud_awswebregform_cds_full_1712144205_latest",
             "tableRegistrationOutput": {
                 "message": "Scheme registration succeeded for GLUE",
-                "result": "Created: 2, Updated: 0",
+                "result": "Created: 1, Updated: 1",
                 "status": "Successful"
             }
         }
     ],
-    "schemaVersion": 2
+    "schemaVersion": 3
 }
