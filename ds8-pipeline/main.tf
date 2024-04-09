@@ -348,16 +348,16 @@ resource "aws_glue_trigger" "source_to_raw_pipeline_trigger" {
   }
 }
 
-# # Add a SNS topic for notifications about GLue Workflow failures
-# resource "aws_sns_topic" "failure_topic" {
-#     name = "ds${var.datasource_number}-failure-topic"
-# }
+# Add a SNS topic for notifications about GLue Workflow failures
+resource "aws_sns_topic" "ds8_failure_topic" {
+    name = "ds8-failure-topic"
+}
 
-# resource "aws_sns_topic_subscription" "failure_email" {
-#   topic_arn = aws_sns_topic.failure_topic.arn
-#   protocol  = "email"  
-#   endpoint  = "davide.moraschi@straumann.com"
-# }
+resource "aws_sns_topic_subscription" "ds8_failure_email" {
+  topic_arn = aws_sns_topic.ds8_failure_topic.arn
+  protocol  = "email"  
+  endpoint  = "davide.moraschi@straumann.com"
+}
 
 # # ===========================================================================================================================
 # # Refined zone
