@@ -1,0 +1,319 @@
+{
+    "flowArn": "arn:aws:appflow:eu-west-1:816247855850:flow/davide_delete_me",
+    "flowName": "davide_delete_me",
+    "kmsArn": "arn:aws:kms:eu-west-1:816247855850:key/e42cde98-0383-45ba-93ea-6f51df8b5337",
+    "flowStatus": "Active",
+    "sourceFlowConfig": {
+        "connectorType": "SAPOData",
+        "connectorProfileName": "stg-dlk-sap-odata-marketing-connection",
+        "sourceConnectorProperties": {
+            "SAPOData": {
+                "objectPath": "/sap/opu/odata/sap/YY1_AWSWEBREGFORM_CDS/YY1_AWSWebRegForm",
+                "parallelismConfig": {
+                    "maxParallelism": 1
+                },
+                "paginationConfig": {
+                    "maxPageSize": 1000
+                }
+            }
+        }
+    },
+    "destinationFlowConfigList": [
+        {
+            "connectorType": "S3",
+            "destinationConnectorProperties": {
+                "S3": {
+                    "bucketName": "stg-dlk-sbx-ds-7-raw",
+                    "s3OutputFormatConfig": {
+                        "fileType": "JSON",
+                        "prefixConfig": {
+                            "pathPrefixHierarchy": [
+                                "EXECUTION_ID"
+                            ]
+                        },
+                        "aggregationConfig": {
+                            "aggregationType": "None"
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "triggerConfig": {
+        "triggerType": "OnDemand",
+        "triggerProperties": {}
+    },
+    "tasks": [
+        {
+            "sourceFields": [
+                "Interaction",
+                "InteractionContactOrigin",
+                "InteractionContactId",
+                "InteractionType",
+                "InteractionStatus",
+                "InteractionTimeStampUTC",
+                "CampaignID",
+                "InteractionSourceObject",
+                "MarketingArea",
+                "FullName",
+                "EmailAddress",
+                "PhoneNumber",
+                "InteractionContact",
+                "MarketingContent",
+                "MarketingContentName",
+                "MarketingContentDescription",
+                "MarketingArea_1"
+            ],
+            "connectorOperator": {
+                "SAPOData": "PROJECTION"
+            },
+            "taskType": "Filter",
+            "taskProperties": {}
+        },
+        {
+            "sourceFields": [
+                "Interaction"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "Interaction",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "Edm.Guid",
+                "SOURCE_DATA_TYPE": "Edm.Guid"
+            }
+        },
+        {
+            "sourceFields": [
+                "InteractionContactOrigin"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "InteractionContactOrigin",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "Edm.String",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "InteractionContactId"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "InteractionContactId",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "Edm.String",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "InteractionType"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "InteractionType",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "Edm.String",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "InteractionStatus"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "InteractionStatus",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "Edm.String",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "InteractionTimeStampUTC"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "InteractionTimeStampUTC",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "datetime",
+                "SOURCE_DATA_TYPE": "datetime"
+            }
+        },
+        {
+            "sourceFields": [
+                "CampaignID"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "CampaignID",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "Edm.String",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "InteractionSourceObject"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "InteractionSourceObject",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "Edm.String",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "MarketingArea"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "MarketingArea",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "Edm.String",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "FullName"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "FullName",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "Edm.String",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "EmailAddress"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "EmailAddress",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "Edm.String",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "PhoneNumber"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "PhoneNumber",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "Edm.String",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "InteractionContact"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "InteractionContact",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "Edm.Guid",
+                "SOURCE_DATA_TYPE": "Edm.Guid"
+            }
+        },
+        {
+            "sourceFields": [
+                "MarketingContent"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "MarketingContent",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "Edm.String",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "MarketingContentName"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "MarketingContentName",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "Edm.String",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "MarketingContentDescription"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "MarketingContentDescription",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "Edm.String",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        },
+        {
+            "sourceFields": [
+                "MarketingArea_1"
+            ],
+            "connectorOperator": {
+                "SAPOData": "NO_OP"
+            },
+            "destinationField": "MarketingArea_1",
+            "taskType": "Map",
+            "taskProperties": {
+                "DESTINATION_DATA_TYPE": "Edm.String",
+                "SOURCE_DATA_TYPE": "Edm.String"
+            }
+        }
+    ],
+    "createdAt": "2024-04-18T12:15:49.927000+02:00",
+    "lastUpdatedAt": "2024-04-18T12:15:49.927000+02:00",
+    "createdBy": "arn:aws:sts::816247855850:assumed-role/AWSReservedSSO_AdministratorAccess_e32122ea09a1e46b/u134859@STRAUMANN.COM",
+    "lastUpdatedBy": "arn:aws:sts::816247855850:assumed-role/AWSReservedSSO_AdministratorAccess_e32122ea09a1e46b/u134859@STRAUMANN.COM",
+    "tags": {},
+    "metadataCatalogConfig": {},
+    "schemaVersion": 1
+}

@@ -49,8 +49,11 @@ CREATE EXTERNAL TABLE IF NOT EXISTS `stg-dlk-sbx-ds6-raw-db`.docebo_courses_user
         ,`Training Material Access from Mobile App` string
     )
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
-WITH SERDEPROPERTIES 
-('separatorChar' = ',', 'quoteChar' = '"', 'escapeChar' = '\\')
+WITH SERDEPROPERTIES (
+  'separatorChar' = ',', 
+  'quoteChar' = '\\\"', 
+  'escapeChar' = '\\\\' )
+STORED AS TEXTFILE
 LOCATION 's3://stg-dlk-sbx-ds-6-raw/docebo_feed/Courses_Users'
 TBLPROPERTIES ('skip.header.line.count' = '1', 'classification'='csv')
 ;
