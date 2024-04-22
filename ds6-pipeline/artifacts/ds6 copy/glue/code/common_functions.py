@@ -11,18 +11,18 @@ import sys
 import logging.config
 import logging
 import time
-import logging
 from typing import Dict, Any
+from functools import lru_cache
+from config import AWS_REGION, AWS_BUCKET, AWS_ATHENA_DATABASE, AWS_ATHENA_OUPUT, AWS_ATHENA_LOG_TABLE, S3_BUCKET, SQL_QUERIES_BUCKET, SQL_QUERIES_FOLDER, S3_PATH, SNS_FAILURE_TOPIC  # pylint: disable=line-too-long
 import boto3
 import awswrangler as wr
 from tabulate import tabulate
-from awsglue.utils import getResolvedOptions  # type: ignore
-from config import AWS_REGION, AWS_BUCKET, AWS_FOLDER, AWS_ATHENA_DATABASE, AWS_ATHENA_OUPUT, AWS_ATHENA_LOG_TABLE, AWS_PROFILE, S3_BUCKET, SQL_QUERIES_BUCKET, SQL_QUERIES_FOLDER, S3_PATH, SNS_FAILURE_TOPIC
-from functools import lru_cache
+from awsglue.utils import getResolvedOptions  # type: ignore # pylint: disable=import-error
 
 LOG_DELAY = 50/1000
 
-class InfoDebugFilter(logging.Filter):
+
+class InfoDebugFilter(logging.Filter):  # pylint: disable=too-few-public-methods
     '''I don't know what to write here, it's just a class that I copied from somewhere.'''
 
     def filter(self, record):
@@ -91,10 +91,8 @@ def default_logging_config(level: str = "INFO", formatter_name: str = "detailed"
 
     return logging_config
 
-
 logging.config.dictConfig(config=default_logging_config(level='DEBUG'))
 glue_job_logger: logging.Logger = logging.getLogger(name='job')
-
 
 def create_etl_log_table(n:int=0) -> None:
     '''Creates the Athena _etl_log table'''
@@ -120,7 +118,7 @@ def create_etl_log_table(n:int=0) -> None:
                                 ,'auditLog' AS str_glue_job_step
                                 ,CAST(123456789 AS BIGINT) AS bigint_rows_retrieved
                                 ,CAST('' AS VARCHAR(2000)) AS str_error_message
-                            ;
+                            WHERE 1=0;
                         '''
 
     get_query_execution: dict = wr.athena.start_query_execution(sql=sql_query,
@@ -135,8 +133,7 @@ def log(workflow_name: str, workflow_run_id: str, job_name: str, job_run_id: str
     '''Writes to the job log file and to the Athena _etl_log table'''
 
     time.sleep(LOG_DELAY)
-    if float_latest_epoch==0:
-        float_latest_epoch = int(1000*float(time.time()))
+    float_latest_epoch = int(1000*float(time.time()))
 
     glue_job_logger.info(msg=f'WORKFLOW_NAME.WORKFLOW_RUN_ID|JOB_NAME.JOB_RUN_ID: {workflow_name}.{workflow_run_id}|{job_name}.{job_run_id}|{str_message}')
 
@@ -164,9 +161,10 @@ def log(workflow_name: str, workflow_run_id: str, job_name: str, job_run_id: str
 
 
 def get_last_loaded_epoch() -> float:
-    database_name:str = AWS_ATHENA_DATABASE
-    sql_query:str = f'''SELECT str_error_message AS last_loaded_epoch FROM {AWS_ATHENA_LOG_TABLE} WHERE str_glue_job_step IN ('auditLog', 'Latest loaded Epoch')
-                            ORDER BY double_epoch_ts_log DESC LIMIT 1;'''
+    '''Returns the last loaded epoch from the Athena _etl_log table'''
+
+    database_name: str = AWS_ATHENA_DATABASE
+    sql_query: str = f'''SELECT MAX(double_epoch_ts_log) AS last_loaded_epoch FROM {AWS_ATHENA_LOG_TABLE}'''
 
     df = wr.athena.read_sql_query(sql=sql_query, database=database_name, ctas_approach=False, s3_output=AWS_ATHENA_OUPUT)
 
@@ -207,19 +205,20 @@ def execute_s3_sql_files_athena(workflow_name: str, workflow_run_id: str, job_na
 
     # Logs SQL_QUERIES_BUCKET.SQL_QUERIES_FOLDER
     log(workflow_name=workflow_name, workflow_run_id=workflow_run_id, job_name=job_name,
-            job_run_id=str(job_run_id), str_message=f'SQL_QUERIES_BUCKET/SQL_QUERIES_FOLDER: {SQL_QUERIES_BUCKET}/{SQL_QUERIES_FOLDER}')
+        job_run_id=str(job_run_id), str_message=f'SQL_QUERIES_BUCKET/SQL_QUERIES_FOLDER: {SQL_QUERIES_BUCKET}/{SQL_QUERIES_FOLDER}')
 
     for sqlfile in s3_bucket.objects.filter(Prefix=SQL_QUERIES_FOLDER):
         if sqlfile.key.endswith('sql'):
             s3_file = s3_client.get_object(Bucket=SQL_QUERIES_BUCKET, Key=sqlfile.key)
             querystring = (s3_file['Body'].read().decode('utf-8'))
+            print(querystring)
 
             log(workflow_name=workflow_name, workflow_run_id=workflow_run_id, job_name=job_name,
-                job_run_id=str(job_run_id), str_message=f'Running Query:\n{querystring}')
+                job_run_id=str(job_run_id), str_message=querystring.partition('\n')[0])
             df = wr.athena.read_sql_query(sql=querystring, database=AWS_ATHENA_DATABASE, ctas_approach=False, s3_output=AWS_ATHENA_OUPUT)
 
             log(workflow_name=workflow_name, workflow_run_id=workflow_run_id, job_name=job_name,
-                job_run_id=str(job_run_id), str_message=f'Filename: {sqlfile.key} - Returned rows: {df.shape[0]:4}')
+                job_run_id=str(job_run_id), str_message=f'Filename: {sqlfile.key}', bigint_rows_retrieved=df.shape[0])
 
             if df.shape[0] > 0:
                 log(workflow_name=workflow_name, workflow_run_id=workflow_run_id, job_name=job_name,
@@ -263,6 +262,7 @@ def send_sns(workflow_name: str, workflow_run_id: str, job_name: str, job_run_id
     sns = boto3.client('sns')
     response = sns.publish(TopicArn=SNS_FAILURE_TOPIC,
                            Message=f'WORKFLOW_NAME={workflow_name}\nWORKFLOW_RUN_ID={workflow_run_id}\nJOB_NAME={job_name}\nJOB_RUN_ID={job_run_id}\n{str(exc)}')
+    print(response)
 
 
 if __name__ == '__main__':

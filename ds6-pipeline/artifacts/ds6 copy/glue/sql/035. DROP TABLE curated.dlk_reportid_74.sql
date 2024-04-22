@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS `stg-dlk-sbx-cl-3-curated-db`.dlk_reportid_74;

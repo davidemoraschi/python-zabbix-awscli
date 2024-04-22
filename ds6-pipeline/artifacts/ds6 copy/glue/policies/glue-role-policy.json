@@ -1,0 +1,94 @@
+{
+	"Statement": [
+		{
+			"Action": [
+				"logs:CreateLogGroup",
+				"logs:CreateLogStream",
+				"logs:PutLogEvents",
+				"logs:AssociateKmsKey"
+			],
+			"Effect": "Allow",
+			"Resource": "arn:aws:logs:${region}:${account_id}:log-group:/aws-glue/*"
+		},
+		{
+			"Action": [
+				"glue:GetDatabase",
+				"glue:GetTable",
+				"glue:CreateTable",
+				"glue:DeleteTable",
+				"glue:UpdateTable"
+			],
+			"Effect": "Allow",
+			"Resource": [
+				"arn:aws:glue:${region}:${account_id}:catalog",
+				"arn:aws:glue:${region}:${account_id}:database/${raw_db_name}",
+				"arn:aws:glue:${region}:${account_id}:table/${raw_db_name}/*",
+				"arn:aws:glue:${region}:${account_id}:database/${refined_db_name}",
+				"arn:aws:glue:${region}:${account_id}:table/${refined_db_name}/*",
+				"arn:aws:glue:${region}:${account_id}:database/${curated_db_name}",
+				"arn:aws:glue:${region}:${account_id}:table/${curated_db_name}/*"
+			]
+		},
+		{
+			"Action": [
+				"athena:StartQueryExecution",
+				"athena:GetQueryExecution",
+				"athena:GetQueryResults"
+			],
+			"Effect": "Allow",
+			"Resource": "arn:aws:athena:${region}:${account_id}:workgroup/primary"
+		},
+		{
+			"Action": [
+				"s3:GetBucketLocation",
+				"s3:ListBucket",
+				"s3:ListAllMyBuckets",
+				"s3:GetBucketAcl",
+				"s3:GetObject",
+				"s3:PutObject",
+				"s3:DeleteObject"
+			],
+			"Effect": "Allow",
+			"Resource": [
+				"${resource-arn}",
+				"${resource-arn}/*",
+				"${resource-arn-ref}",
+				"${resource-arn-ref}/*",
+				"arn:aws:s3:::stg-dlk-sbx-code-artifacts",
+				"arn:aws:s3:::stg-dlk-sbx-code-artifacts/*",
+				"arn:aws:s3:::stg-dlk-*-athena-query-results",
+				"arn:aws:s3:::stg-dlk-*-athena-query-results/*"
+			]
+		},
+		{
+			"Action": [
+				"kms:Decrypt",
+				"kms:GenerateDataKey"
+			],
+			"Effect": "Allow",
+			"Resource": "${kms_key_arn}"
+		},
+		{
+			"Effect": "Allow",
+			"Action": "sns:Publish",
+			"Resource": "arn:aws:sns:${region}:${account_id}:${failure_topic_name}"
+		},
+		{
+			"Action": [
+				"lakeformation:GetDataAccess"
+			],
+			"Effect": "Allow",
+			"Resource": "*"
+		},
+		{
+			"Action": [
+				"secretsmanager:GetSecretValue"
+			],
+			"Effect": "Allow",
+			"Resource": [
+				"arn:aws:secretsmanager:${region}:${account_id}:secret:${secret_name}*"
+			]
+		}
+	],
+	"Version": "2012-10-17"
+}

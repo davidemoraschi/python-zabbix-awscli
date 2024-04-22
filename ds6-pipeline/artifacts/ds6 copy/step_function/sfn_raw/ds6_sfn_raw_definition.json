@@ -1,0 +1,154 @@
+{
+    "Comment": "This is your state machine",
+    "StartAt": "get_report_ids",
+    "States": {
+      "get_report_ids": {
+        "Type": "Task",
+        "Parameters": {
+          "Names": ["${report_ids_parameter_name}"],
+          "WithDecryption": true
+        },
+        "Resource": "arn:aws:states:::aws-sdk:ssm:getParameters",
+        "ResultPath": "$.report_ids_result",
+        "Next": "generate_array"
+      },
+      "generate_array": {
+        "Type": "Pass",
+        "Parameters": {
+          "report_ids_array.$": "States.StringToJson($.report_ids_result.Parameters[0].Value)"
+        },
+        "ResultPath": "$.generated_array",
+        "Next": "map_to_invoke_ds6_glue_job"
+      },
+      "map_to_invoke_ds6_glue_job": {
+        "Type": "Map",
+        "InputPath": "$",
+        "ItemsPath": "$.generated_array.report_ids_array.report_ids",
+        "ItemSelector": {
+          "report_id.$": "$$.Map.Item.Value",
+          "startTime.$": "$$.Execution.StartTime"
+        },
+        "Iterator": {
+          "StartAt": "run_ingestion",
+          "States": {
+            "run_ingestion": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::glue:startJobRun.sync",
+              "End": true,
+              "Parameters": {
+                "JobName": "${glue_job_name}",
+                "Arguments": {
+                  "--report_id.$": "$.report_id",
+                  "--startTime.$": "$.startTime"
+                }
+              }
+            }
+          }
+        },
+        "ResultPath": "$.map_result",
+        "Next": "StartCrawler"
+      },
+      "StartCrawler": {
+        "Type": "Task",
+        "Parameters": {
+          "Name": "${crawler_name}"
+        },
+        "Resource": "arn:aws:states:::aws-sdk:glue:startCrawler",
+        "Retry": [
+          {
+            "ErrorEquals": [
+              "Glue.EntityNotFoundException"
+            ],
+            "BackoffRate": 1,
+            "IntervalSeconds": 1,
+            "MaxAttempts": 0,
+            "Comment": "EntityNotFoundException - Fail immediately"
+          },
+          {
+            "ErrorEquals": [
+              "Glue.CrawlerRunningException"
+            ],
+            "BackoffRate": 1,
+            "IntervalSeconds": 1,
+            "MaxAttempts": 0
+          }
+        ],
+        "Next": "GetCrawler",
+        "ResultPath": "$.response.start_crawler",
+        "Catch": [
+          {
+            "ErrorEquals": [
+              "Glue.CrawlerRunningException"
+            ],
+            "Next": "GetCrawler",
+            "Comment": "Crawler Already Running, just continue to monitor",
+            "ResultPath": "$.response.start_crawler"
+          }
+        ]
+      },
+      "GetCrawler": {
+        "Type": "Task",
+        "Parameters": {
+          "Name": "${crawler_name}"
+        },
+        "Resource": "arn:aws:states:::aws-sdk:glue:getCrawler",
+        "ResultPath": "$.response.get_crawler",
+        "Retry": [
+          {
+            "ErrorEquals": [
+              "States.ALL"
+            ],
+            "BackoffRate": 2,
+            "IntervalSeconds": 1,
+            "MaxAttempts": 8
+          }
+        ],
+        "Next": "Is Running?"
+      },
+      "Is Running?": {
+        "Type": "Choice",
+        "Choices": [
+          {
+            "Or": [
+              {
+                "Variable": "$.response.get_crawler.Crawler.State",
+                "StringEquals": "RUNNING"
+              },
+              {
+                "Variable": "$.response.get_crawler.Crawler.State",
+                "StringEquals": "STOPPING"
+              }
+            ],
+            "Next": "Wait for Crawler To Complete"
+          }
+        ],
+        "Default": "CheckCrawlerStatus"
+      },
+      "Wait for Crawler To Complete": {
+        "Type": "Wait",
+        "Seconds": 5,
+        "Next": "GetCrawler"
+      },
+      "CheckCrawlerStatus": {
+        "Type": "Choice",
+        "Choices": [
+          {
+            "Variable": "$.response.get_crawler.Crawler.LastCrawl.Status",
+            "StringEquals": "FAILED",
+            "Next": "CrawlerFailed"
+          }
+        ],
+        "Default": "CrawlerSucceeded"
+      },
+      "CrawlerSucceeded": {
+        "Type": "Pass",
+        "End": true
+      },
+      "CrawlerFailed": {
+        "Type": "Fail",
+        "Error": "CrawlerFailedError",
+        "Cause": "The crawler failed."
+      }
+    }
+  }
+  
