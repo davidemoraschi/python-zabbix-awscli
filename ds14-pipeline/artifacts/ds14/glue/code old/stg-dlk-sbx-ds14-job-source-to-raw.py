@@ -39,8 +39,8 @@ def move_to_processed_folder(s3_client: Any, from_file_key: Any, to_file_key: An
     # Copy the file to the destination folder
     try:
         s3_client.copy_object(Bucket=AWS_BUCKET, CopySource=AWS_BUCKET + '/' + from_file_key.key, Key=S3_PROCESSED_FOLDER + to_file_key)
-        # Delete the original file
-        s3_client.delete_object(Bucket=AWS_BUCKET, Key=from_file_key.key)
+        # Delete the original file (commented out)
+        # s3_client.delete_object(Bucket=AWS_BUCKET, Key=from_file_key.key)
     except Exception as exc:
         # Log the exception
         log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
@@ -66,7 +66,6 @@ def main() -> None:
         # Creates a S3 resource and gets the bucket
         s3_resource = boto3.resource(service_name='s3')
         json_bucket = s3_resource.Bucket(name=AWS_BUCKET)
-        total_file_count = 0
 
         # Loops for every JSON file in the ext bucket/folder
         for json_file in json_bucket.objects.filter(Prefix=AWS_FOLDER):
@@ -76,21 +75,18 @@ def main() -> None:
                 # Gets the event type from the file name
                 event_type = json_file.key.split(AWS_FOLDER)[1].split('/')[1].split('.')[1]
                 if event_type in EVENT_TYPES:
-                    total_file_count +=1
-                    
                     # Reads the file
                     s3_file = s3_client.get_object(Bucket=AWS_BUCKET, Key=json_file.key)
                     json_payload = s3_file['Body'].read().decode('utf-8')
 
                     # Log file upload
-                    s3_filename: str = json_file.key.replace(AWS_FOLDER,'/') # json_file.key.split(AWS_FOLDER)[1].split('/') #[1]
-                    # print(s3_filename)
+                    s3_filename: str = json_file.key.split(AWS_FOLDER)[1].split('/')[1]
                     log(workflow_name=WORKFLOW_NAME, workflow_run_id=WORKFLOW_RUN_ID, job_name=JOB_NAME,
                         job_run_id=str(JOB_RUN_ID), str_message=f'Uploading file: {s3_filename}')
 
                     # Uploads to S3 raw bucket/folder
                     upload_json_gz(s3client=s3_client, bucket=S3_DESTINATION_BUCKET,
-                                   key=S3_DESTINATION_PATH + event_type + '{0}.gz'.format(s3_filename), obj=json_payload)
+                                   key=S3_DESTINATION_PATH + event_type + '/{0}.gz'.format(s3_filename), obj=json_payload)
 
                     # Moves it from the ext folder to the processed one
                     move_to_processed_folder(s3_client=s3_client, from_file_key=json_file, to_file_key=s3_filename)
@@ -113,9 +109,11 @@ def main() -> None:
             job_run_id=str(JOB_RUN_ID), str_message='end-job')
 
         # Reraise exception
+        # sys.exit(1)
         raise
 
 
 # Run main function if script is run directly
 if __name__ == "__main__":
     main()
+    # sys.exit(0)

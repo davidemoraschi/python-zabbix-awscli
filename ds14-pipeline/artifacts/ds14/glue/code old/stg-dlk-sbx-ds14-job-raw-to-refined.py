@@ -22,7 +22,7 @@ print(tabulate(tabular_data=args.items(), headers=['args.keys()', 'args.values()
 # Parse report IDs, workflow name, EVENT_TYPES, and job name from arguments
 WORKFLOW_NAME: str = args['WORKFLOW_NAME']
 WORKFLOW_RUN_ID: str = args['WORKFLOW_RUN_ID']
-JOB_NAME: str = args['JOB_NAME'] if 'JOB_NAME' in args else 'stg-dlk-sbx-ds14-job-raw-to-refined'
+JOB_NAME: str = args['JOB_NAME'] if 'JOB_NAME' in args else 'stg-dlk-sbx-ds11-job-raw-to-refined'
 JOB_RUN_ID: int = int(time.time())
 
 
